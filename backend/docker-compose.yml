@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: bully-rabbitmq
+    ports:
+      - "5672:5672"   # Port do komunikacji z Pythonem
+      - "15672:15672" # Port panelu graficznego zarządzania (login: guest, hasło: guest)
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: bully-postgres
+    environment:
+      POSTGRES_USER: bully_admin
+      POSTGRES_PASSWORD: bully_password
+      POSTGRES_DB: bully_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
