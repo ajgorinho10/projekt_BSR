@@ -8,8 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from backend.core import current_superuser
-from backend.nodes.state import API_address,NODES_KEY
+#Komunikacja z menadżerem wątków
+API_ADDRESS = os.getenv("API_ADDRESS","http://127.0.0.1:8000")
+NODES_KEY = os.getenv("NODES_KEY","KLUCZ_DO_WEZLOW!")
 
 # Konfiguracja węzła
 NODE_ID = int(os.getenv("NODE_ID", 1))
@@ -33,7 +34,7 @@ app = FastAPI(title=f"Węzeł {NODE_ID}")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[API_address],
+    allow_origins=[API_ADDRESS],
     allow_credentials=True,
     allow_methods=["GET, POST"],
     allow_headers=["*"],
@@ -43,11 +44,9 @@ app.add_middleware(
 class KEYRestrictMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
 
-        #Tylko do testów potem do usunięcia
-        if request.url.path in ["/docs", "/openapi.json", "/redoc"]:
-            return await call_next(request)
-
         key = request.headers.get("nodes-key")
+        print(API_ADDRESS,NODES_KEY)
+        print(key)
 
         if key != NODES_KEY:
             return JSONResponse(

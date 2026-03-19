@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from db import init_db
 from backend.auth import router_user as auth_router
+from nodes import router as nodes_router
 
 
 @asynccontextmanager
@@ -27,6 +28,7 @@ app.add_middleware(
 
 
 app.include_router(auth_router.router)
+app.include_router(nodes_router)
 
 
 if __name__ == "__main__":

@@ -4,8 +4,12 @@ import sys
 
 import requests
 from fastapi import APIRouter, HTTPException,Depends
-from backend.core import nodes_db, current_active_user, current_superuser, NODES_KEY
-from models import User
+
+from models_user import User
+from backend.auth import require_admin,get_current_user
+
+from .state import nodes_db
+NODES_KEY = os.getenv("NODES_KEY","KLUCZ_DO_WEZLOW!")
 
 router = APIRouter(
     prefix="/nodes",
@@ -13,7 +17,7 @@ router = APIRouter(
 )
 
 @router.get("/")
-async def getALLNodes():
+async def getALLNodes(user: User = Depends(get_current_user)):
     """Pobieramy wszystkie węzły"""
     active_nodes = []
 
@@ -34,7 +38,7 @@ async def getALLNodes():
     return {"nodes": active_nodes}
 
 @router.get("/{node_id}")
-async def getNodeInfo(node_id: int):
+async def getNodeInfo(node_id: int,user: User = Depends(get_current_user)):
     if node_id not in nodes_db:
         raise HTTPException(status_code=400, detail=f"Węzeł {node_id} nie istnieje!")
 
@@ -49,7 +53,7 @@ async def getNodeInfo(node_id: int):
 
 
 @router.post("/deactivate/{node_id}")
-async def deactivateNode(node_id: int,user:User = Depends(current_superuser)):
+async def deactivateNode(node_id: int,user:User = Depends(require_admin)):
     """Uprawnienia TYLKO super User"""
 
     if node_id not in nodes_db:
@@ -65,7 +69,7 @@ async def deactivateNode(node_id: int,user:User = Depends(current_superuser)):
         raise HTTPException(status_code=400, detail=f"Węzeł {node_id} nie odpowiada!")
 
 @router.post("/activate/{node_id}")
-async def deactivateNode(node_id: int,user:User = Depends(current_superuser)):
+async def deactivateNode(node_id: int,user:User = Depends(require_admin)):
     if node_id not in nodes_db:
         raise HTTPException(status_code=400, detail=f"Węzeł {node_id} nie istnieje!")
 
@@ -81,7 +85,7 @@ async def deactivateNode(node_id: int,user:User = Depends(current_superuser)):
 
 
 @router.post("/{node_id}")
-def create_node(node_id: int,user:User = Depends(current_superuser)):
+def create_node(node_id: int,user:User = Depends(require_admin)):
     """Uruchamia nowy węzeł"""
     if node_id in nodes_db and nodes_db[node_id]["process"].poll() is None:
         raise HTTPException(status_code=400, detail=f"Węzeł {node_id} już działa!")
@@ -90,11 +94,11 @@ def create_node(node_id: int,user:User = Depends(current_superuser)):
     env = os.environ.copy()
     env["NODE_ID"] = str(node_id)
 
-    parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../core"))
+    parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../nodes"))
 
     try:
         process = subprocess.Popen(
-            ["cmd.exe", "/k", sys.executable, "-m", "uvicorn", "node:app", "--port", str(port)],
+            ["cmd.exe", "/k", sys.executable, "-m", "uvicorn", "node_process:app", "--port", str(port)],
             env=env,
             creationflags=subprocess.CREATE_NEW_CONSOLE,
             cwd=parent_dir
@@ -108,7 +112,7 @@ def create_node(node_id: int,user:User = Depends(current_superuser)):
 
 
 @router.delete("/{node_id}")
-def delete_node(node_id: int,user:User = Depends(current_superuser)):
+def delete_node(node_id: int,user:User = Depends(require_admin)):
     """TYLKO ADMIN: Fizycznie zabija proces węzła"""
     if node_id not in nodes_db:
         raise HTTPException(status_code=404, detail=f"Węzeł {node_id} nie istnieje.")
