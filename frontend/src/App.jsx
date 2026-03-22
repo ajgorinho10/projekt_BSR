@@ -2,16 +2,18 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
 import { useAuth } from './context/AuthContext';
+import { NodesProvider } from './context/NodesContext';
+
 import { ProtectedRoute } from './components/ProtectedRoute';
 
-import {Login} from './components/Login'
+import { Login } from './components/Login'
 import { Register } from './components/Register';
 import { Settings2FA } from './components/Settings';
+import { AdminPanel } from './pages/AdminPanel';
 
 // Tymczasowe komponenty (Zaraz zamienimy je na prawdziwe pliki!)
 const Home = () => <h2>Strona Główna (Dostępna dla każdego)</h2>;
-const Dashboard = () => <h2>Panel Użytkownika (Tylko dla zalogowanych)</h2>;
-const AdminPanel = () => <h2>Tajny Panel Admina (Tylko dla Adminów)</h2>;
+const Dashboard = () => <h2>dashboard (Dostępna dla każdego)</h2>;
 
 function App() {
   const { isAuthenticated, logout, user } = useAuth();
@@ -29,11 +31,12 @@ function App() {
             </>
           ) : (
             <>
-              <Link to="/dashboard" style={{ marginRight: '10px' }}>Mój Panel</Link>
+                <Link to="/dashboard" style={{ marginRight: '10px' }}>Mój Panel</Link>
+                {user?.role === 'admin' && (
+                  <Link to="/admin" style={{ marginRight: '10px', color: 'red' }}>Panel Admina</Link>
+                )}
+
               <Link to="/settings2FA" style={{ marginRight: '10px' }}>Ustaw 2FA</Link>
-              {user?.role === 'admin' && (
-                <Link to="/admin" style={{ marginRight: '10px', color: 'red' }}>Panel Admina</Link>
-              )}
               <button onClick={logout} style={{ marginLeft: '10px' }}>Wyloguj ({user.username})</button>
             </>
           )}
@@ -45,6 +48,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register/>}/>
+
 
           {/* Strony CHRONIONE (Tylko dla zalogowanych) */}
           <Route element={<ProtectedRoute />}>

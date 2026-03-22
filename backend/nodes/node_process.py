@@ -1,8 +1,11 @@
+import asyncio
 import threading
 import pika
 import json
 import os
 import time
+
+import websockets
 from fastapi import FastAPI,Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -173,11 +176,36 @@ def HEARTBEAT():
             send_message(TYPE_MSG_HEARTBEAT)
 
         elif not ELECTION_IN_PROGRESS:
-            if time.time() - LAST_HEARTBEAT > 5 and time.time() - START_UP_TIME > 10:
+            if time.time() - LAST_HEARTBEAT > 5.0 and time.time() - START_UP_TIME > 10:
                 print(f"\n[Węzeł {NODE_ID}] Brak sygnału od lidera! Inicjuję wybory!")
                 start_election()
             elif LEADER_ID is None and len(ELECTION_MSGS) != 0:
                 LEADER_ID = max(ELECTION_MSGS)
+
+
+
+async def connect_to_api():
+    uri = f"ws://127.0.0.1:8000/nodes/ws_nodes?api_key={NODES_KEY}"
+    last_data = None
+
+    try:
+        async with websockets.connect(uri) as websocket:
+            print("Połączono z serwerem!")
+
+            while True:
+                data = {"leader_id": LEADER_ID,"node_id": NODE_ID,"status": STATUS}
+                msg = json.dumps(data)
+                if msg != last_data:
+                    await websocket.send(msg)
+                    last_data = msg
+
+                await asyncio.sleep(2)
+
+
+    except websockets.exceptions.ConnectionClosed as e:
+        print(f"Rozłączono z serwerem: {e}")
+    except Exception as e:
+        print(f"Wystąpił błąd: {e}")
 
 
 @app.on_event("startup")
@@ -189,6 +217,8 @@ def startup_event():
     time.sleep(2)
     LAST_HEARTBEAT = time.time()
     START_UP_TIME = time.time()
+
+    asyncio.create_task(connect_to_api())
 
 # ENDPOINTY
 @app.get("/status")

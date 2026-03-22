@@ -2,6 +2,8 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+import { NodesProvider } from '../context/NodesContext';
+
 export const ProtectedRoute = ({ requireAdmin = false }) => {
     const { isAuthenticated, isAdmin, isLoading } = useAuth();
 
@@ -26,5 +28,9 @@ export const ProtectedRoute = ({ requireAdmin = false }) => {
     }
 
     // Jeśli wszystko jest OK, renderujemy zawartość strony (Outlet)
-    return <Outlet />;
+    return (
+        <NodesProvider>
+            <Outlet />
+        </NodesProvider>
+    );
 };

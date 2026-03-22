@@ -11,9 +11,9 @@ const api = axios.create({
 
 // 2. Request Interceptor: Zanim wyślesz zapytanie, doklej token
 api.interceptors.request.use(
-    (config) => {
+    async (config) => {
         // Wyciągamy access_token z pamięci przeglądarki (localStorage)
-        const accessToken = localStorage.getItem('access_token');
+        const accessToken = await localStorage.getItem('access_token');
         
         // Jeśli mamy token, dodajemy go do nagłówka Authorization
         if (accessToken) {
@@ -43,16 +43,7 @@ api.interceptors.response.use(
         // Jeśli błąd to 401 (Brak autoryzacji) i nie próbowaliśmy go jeszcze ponowić...
         if (error.response?.status === 401 && !originalRequest._retry) {
             
-            // Unikamy pętli nieskończonej, gdyby sam endpoint /refresh rzucił 401
-            if (originalRequest.url === '/auth/refresh') {
-                // Jeśli refresh token też wygasł, wylogowujemy użytkownika
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('refresh_token');
-                window.location.href = '/login'; // Przekierowanie na stronę logowania
-                return Promise.reject(error);
-            }
-
-            originalRequest._retry = true; // Flaga, żeby nie wpaść w pętlę
+            originalRequest._retry = true;
 
             try {
                 // Wyciągamy refresh_token
@@ -67,8 +58,8 @@ api.interceptors.response.use(
                 });
 
                 // 1. Zapisujemy NOWE tokeny w przeglądarce
-                localStorage.setItem('access_token', response.data.access_token);
-                localStorage.setItem('refresh_token', response.data.refresh_token);
+                await localStorage.setItem('access_token', response.data.access_token);
+                await localStorage.setItem('refresh_token', response.data.refresh_token);
 
                 // 2. Podmieniamy stary token w oryginalnym zapytaniu na nowy
                 originalRequest.headers['Authorization'] = `Bearer ${response.data.access_token}`;

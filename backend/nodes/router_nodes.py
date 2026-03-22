@@ -1,24 +1,31 @@
+import asyncio
+import json
 import os
 import subprocess
 import sys
 
 import requests
-from fastapi import APIRouter, HTTPException,Depends
+from fastapi import APIRouter, HTTPException, Depends, WebSocket, WebSocketDisconnect, Query, WebSocketException
+from starlette import status
 
 from models_user import User
-from backend.auth import require_admin,get_current_user
+from backend.auth import require_admin, get_current_user
 
-from .state import nodes_db
+from .state import nodes_db,nodes_details_db
+
+from dotenv import load_dotenv
+
+
+load_dotenv()
 NODES_KEY = os.getenv("NODES_KEY","KLUCZ_DO_WEZLOW!")
+active_connections = []
 
 router = APIRouter(
     prefix="/nodes",
     tags=["Nodes"],
 )
 
-@router.get("/")
-async def getALLNodes(user: User = Depends(get_current_user)):
-    """Pobieramy wszystkie węzły"""
+async def get_nodes_connections():
     active_nodes = []
 
     for node_id, info in nodes_db.items():
@@ -35,7 +42,58 @@ async def getALLNodes(user: User = Depends(get_current_user)):
             "status": status
         })
 
-    return {"nodes": active_nodes}
+    return active_nodes
+
+async def get_nodes_info():
+    active_nodes = []
+    for node in nodes_details_db.values():
+        active_nodes.append(node)
+
+    return active_nodes
+
+@router.websocket("/ws_nodes")
+async def websocket_nodes(websocket: WebSocket, api_key: str = Query(None)):
+
+    if api_key != NODES_KEY:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    await websocket.accept()
+    id = None
+    try:
+        while True:
+            data = await websocket.receive_json()
+            nodes_details_db[data["node_id"]] = data
+            id = data["node_id"]
+
+    except WebSocketDisconnect as e:
+        nodes_details_db.pop(id)
+        pass
+
+@router.websocket("/ws")
+async def websocket_frontend(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        last_send_nodes = None
+        last_send_info = None
+        while True:
+            nodes = await get_nodes_connections()
+            info = await get_nodes_info()
+            if last_send_nodes != nodes or last_send_info != info:
+                data = {"nodes": nodes,"node_details": nodes_details_db}
+                await websocket.send_json(data)
+                last_send_nodes = nodes
+                last_send_info = info
+
+            await asyncio.sleep(1)
+
+    except WebSocketException as e:
+        pass
+
+@router.get("/")
+async def getALLNodes(user: User = Depends(get_current_user)):
+    """Pobieramy wszystkie węzły"""
+    return {"nodes": get_nodes_connections}
 
 @router.get("/{node_id}")
 async def getNodeInfo(node_id: int,user: User = Depends(get_current_user)):
@@ -44,9 +102,10 @@ async def getNodeInfo(node_id: int,user: User = Depends(get_current_user)):
 
     port = nodes_db[node_id]["port"]
     url = nodes_db[node_id]["url"]+"/status"
+    headers = {"nodes-key": NODES_KEY}
 
     try:
-        response = requests.get(url,timeout=2)
+        response = requests.get(url,headers=headers,timeout=2)
         return response.json()
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Węzeł {node_id} nie odpowiada!")
@@ -61,9 +120,10 @@ async def deactivateNode(node_id: int,user:User = Depends(require_admin)):
 
     port = nodes_db[node_id]["port"]
     url = nodes_db[node_id]["url"]+"/deactivate"
+    headers = {"nodes-key": NODES_KEY}
 
     try:
-        response = requests.post(url,timeout=2)
+        response = requests.post(url,headers=headers,timeout=2)
         return response.json()
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Węzeł {node_id} nie odpowiada!")
