@@ -1,5 +1,5 @@
 from jose import jwt, JWTError
-from backend.auth import ALGORITHM,SECRET_KEY
+from auth import ALGORITHM,SECRET_KEY
 
 
 async def verify_ws_token_and_role(token: str, allowed_roles: list[str]):

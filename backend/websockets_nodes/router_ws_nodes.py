@@ -5,7 +5,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, WebSocketE
 from starlette.websockets import WebSocketState
 from starlette import status
 
-from backend.nodes.state import *
+from nodes.state import *
 from .ws_utils import verify_ws_token_and_role
 
 from dotenv import load_dotenv
