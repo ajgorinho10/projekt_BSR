@@ -4,7 +4,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from db import init_db
+from database import init_db
 from nodes.state import reset_database
 
 from nodes import router_nodes

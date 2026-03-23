@@ -7,8 +7,8 @@ import psutil
 import requests
 from fastapi import APIRouter, HTTPException, Depends
 
-from models_user import User
-from backend.auth import require_admin, get_current_user
+from database import User
+from auth import require_admin, get_current_user
 
 from .state import *
 

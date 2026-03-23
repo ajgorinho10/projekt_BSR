@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 
-from models_user import User,BlacklistedToken
-from db import get_async_session
+from database import User,BlacklistedToken
+from database import get_async_session
 
 from .schemas_user import (UserLogin,
                            Verify2FA,

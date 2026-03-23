@@ -5,9 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 from typing import List
 
-from db import get_async_session
+from database import get_async_session
 from .auth_utils import SECRET_KEY, ALGORITHM, oauth2_scheme
-from models_user import User
+from database import User
 
 async def get_current_user(
         token: str = Depends(oauth2_scheme),
