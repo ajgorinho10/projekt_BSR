@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 from models_user import UserBase
@@ -7,6 +9,11 @@ class UserLogin(UserBase):
 
 class UserCreate(UserBase):
     password: str
+
+class UserUpdate(UserBase):
+    username: Optional[str] = None
+    totp_enabled: Optional[bool] = None
+    password: Optional[str] = None
 
 class UserRead(UserBase):
     id: int

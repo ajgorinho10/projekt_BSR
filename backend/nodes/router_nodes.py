@@ -1,94 +1,27 @@
 import asyncio
-import json
 import os
 import subprocess
 import sys
 
+import psutil
 import requests
-from fastapi import APIRouter, HTTPException, Depends, WebSocket, WebSocketDisconnect, Query, WebSocketException
-from starlette import status
+from fastapi import APIRouter, HTTPException, Depends
 
 from models_user import User
 from backend.auth import require_admin, get_current_user
 
-from .state import nodes_db,nodes_details_db
+from .state import *
 
 from dotenv import load_dotenv
 
 
 load_dotenv()
 NODES_KEY = os.getenv("NODES_KEY","KLUCZ_DO_WEZLOW!")
-active_connections = []
 
 router = APIRouter(
     prefix="/nodes",
     tags=["Nodes"],
 )
-
-async def get_nodes_connections():
-    active_nodes = []
-
-    for node_id, info in nodes_db.items():
-        # Sprawdzamy, czy okno terminala z procesem nadal fizycznie działa
-        process = info["process"]
-        is_running = process.poll() is None
-
-        status = "RUNNING" if is_running else "STOPPED"
-
-        active_nodes.append({
-            "node_id": node_id,
-            "port": info["port"],
-            "url": f"http://127.0.0.1:{info['port']}",
-            "status": status
-        })
-
-    return active_nodes
-
-async def get_nodes_info():
-    active_nodes = []
-    for node in nodes_details_db.values():
-        active_nodes.append(node)
-
-    return active_nodes
-
-@router.websocket("/ws_nodes")
-async def websocket_nodes(websocket: WebSocket, api_key: str = Query(None)):
-
-    if api_key != NODES_KEY:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
-
-    await websocket.accept()
-    id = None
-    try:
-        while True:
-            data = await websocket.receive_json()
-            nodes_details_db[data["node_id"]] = data
-            id = data["node_id"]
-
-    except WebSocketDisconnect as e:
-        nodes_details_db.pop(id)
-        pass
-
-@router.websocket("/ws")
-async def websocket_frontend(websocket: WebSocket):
-    await websocket.accept()
-    try:
-        last_send_nodes = None
-        last_send_info = None
-        while True:
-            nodes = await get_nodes_connections()
-            info = await get_nodes_info()
-            if last_send_nodes != nodes or last_send_info != info:
-                data = {"nodes": nodes,"node_details": nodes_details_db}
-                await websocket.send_json(data)
-                last_send_nodes = nodes
-                last_send_info = info
-
-            await asyncio.sleep(1)
-
-    except WebSocketException as e:
-        pass
 
 @router.get("/")
 async def getALLNodes(user: User = Depends(get_current_user)):
@@ -97,11 +30,12 @@ async def getALLNodes(user: User = Depends(get_current_user)):
 
 @router.get("/{node_id}")
 async def getNodeInfo(node_id: int,user: User = Depends(get_current_user)):
-    if node_id not in nodes_db:
+    node = await get_node(node_id)
+    if node is None:
         raise HTTPException(status_code=400, detail=f"Węzeł {node_id} nie istnieje!")
 
-    port = nodes_db[node_id]["port"]
-    url = nodes_db[node_id]["url"]+"/status"
+    port = node["port"]
+    url = node["url"]+"/status"
     headers = {"nodes-key": NODES_KEY}
 
     try:
@@ -114,12 +48,12 @@ async def getNodeInfo(node_id: int,user: User = Depends(get_current_user)):
 @router.post("/deactivate/{node_id}")
 async def deactivateNode(node_id: int,user:User = Depends(require_admin)):
     """Uprawnienia TYLKO super User"""
-
-    if node_id not in nodes_db:
+    node = await get_node(node_id)
+    if node is None:
         raise HTTPException(status_code=400, detail=f"Węzeł {node_id} nie istnieje!")
 
-    port = nodes_db[node_id]["port"]
-    url = nodes_db[node_id]["url"]+"/deactivate"
+    port = node["port"]
+    url = node["url"]+"/deactivate"
     headers = {"nodes-key": NODES_KEY}
 
     try:
@@ -130,11 +64,13 @@ async def deactivateNode(node_id: int,user:User = Depends(require_admin)):
 
 @router.post("/activate/{node_id}")
 async def deactivateNode(node_id: int,user:User = Depends(require_admin)):
-    if node_id not in nodes_db:
+
+    node = await get_node(node_id)
+    if node is None:
         raise HTTPException(status_code=400, detail=f"Węzeł {node_id} nie istnieje!")
 
-    port = nodes_db[node_id]["port"]
-    url = nodes_db[node_id]["url"]+"/activate"
+    port = node["port"]
+    url = node["url"]+"/activate"
     headers = {"nodes-key": NODES_KEY}
 
     try:
@@ -145,10 +81,14 @@ async def deactivateNode(node_id: int,user:User = Depends(require_admin)):
 
 
 @router.post("/{node_id}")
-def create_node(node_id: int,user:User = Depends(require_admin)):
+async def create_node(node_id: int,user:User = Depends(require_admin)):
     """Uruchamia nowy węzeł"""
-    if node_id in nodes_db and nodes_db[node_id]["process"].poll() is None:
-        raise HTTPException(status_code=400, detail=f"Węzeł {node_id} już działa!")
+    node = await get_node(node_id)
+    if node is not None:
+        pid = node.get("pid")
+        # Pytamy system operacyjny, czy proces o tym numerze PID nadal działa
+        if pid and psutil.pid_exists(pid):
+            raise HTTPException(status_code=400, detail=f"Węzeł {node_id} już działa!")
 
     port = 8000 + node_id
     env = os.environ.copy()
@@ -164,7 +104,13 @@ def create_node(node_id: int,user:User = Depends(require_admin)):
             cwd=parent_dir
         )
 
-        nodes_db[node_id] = {"port": port, "process": process, "url": "http://127.0.0.1:"+str(port)}
+        node_data = {
+            "port": port,
+            "pid": process.pid,
+            "url": f"http://127.0.0.1:{port}"
+        }
+
+        await add_nodes_db(node_id, node_data)
         return {"message": f"Utworzono Węzeł {node_id}!"}
 
     except Exception as e:
@@ -172,21 +118,23 @@ def create_node(node_id: int,user:User = Depends(require_admin)):
 
 
 @router.delete("/{node_id}")
-def delete_node(node_id: int,user:User = Depends(require_admin)):
+async def delete_node(node_id: int,user:User = Depends(require_admin)):
     """TYLKO ADMIN: Fizycznie zabija proces węzła"""
-    if node_id not in nodes_db:
+    node = await get_node(node_id)
+    if node is None:
         raise HTTPException(status_code=404, detail=f"Węzeł {node_id} nie istnieje.")
 
-    process = nodes_db[node_id]["process"]
-    if process.poll() is None:
+    pid = node.get("pid")
+    if pid and psutil.pid_exists(pid):
         try:
-            #process.kill()
-            subprocess.run(['taskkill', '/F', '/T', '/PID', str(process.pid)], capture_output=True)
-            del nodes_db[node_id]
+            subprocess.run(['taskkill', '/F', '/T', '/PID', str(pid)], capture_output=True)
+            await remove_nodes_db(node_id)
+            await remove_nodes_details_db(node_id)
+
             return {"message": f"Węzeł {node_id} zlikwidowany!"}
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Błąd: {str(e)}")
     else:
-        del nodes_db[node_id]
+        await remove_nodes_db(node_id)
         return {"message": "Węzeł był już wyłączony."}
 

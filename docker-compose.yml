@@ -25,5 +25,12 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  redis:
+    image: redis:alpine
+    container_name: aplikacja_redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
 volumes:
   pgdata:

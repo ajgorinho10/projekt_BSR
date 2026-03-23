@@ -1,7 +1,7 @@
 import pyotp
 from jose import JWTError, jwt
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from fastapi.params import Depends
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,7 +16,7 @@ from .schemas_user import (UserLogin,
                            UserRead,
                            UserCreate,
                            Confirm2FA,
-                           TokenRefreshRequest)
+                           TokenRefreshRequest, UserUpdate)
 
 from .auth_utils import (create_access_token,
                          verify_password,
@@ -219,13 +219,14 @@ async def test(current_user: User = Depends(get_current_user)):
 @router.post("/promote-me")
 async def promote_to_admin(
         current_user: User = Depends(get_current_user),
+        role: str = Query(None),
         session: AsyncSession = Depends(get_async_session)
 ):
+    if role and role == current_user.role and role in ["user","admin"]:
+        raise HTTPException(status_code=400, detail="Błędna rola")
 
-    if current_user.role == "admin":
-        raise HTTPException(status_code=400, detail="Jesteś już administratorem.")
 
-    current_user.role = "admin"
+    current_user.role = role
     session.add(current_user)
     await session.commit()
 
@@ -233,6 +234,82 @@ async def promote_to_admin(
         "message": f"Sukces! Użytkownik {current_user.username} otrzymał rolę 'admin'."
     }
 
-@router.get("/admin")
-async def admin(current_user: User = Depends(require_admin)):
-    return current_user
+@router.put("/update-username")
+async def update_user(
+        update_data: UserUpdate,
+        current_user: User = Depends(get_current_user),
+        session: AsyncSession = Depends(get_async_session)
+):
+    """Aktualizuje username użytkownika"""
+
+    update_dict = update_data.model_dump(exclude_unset=True)
+
+    if "username" not in update_dict:
+        raise HTTPException(status_code=400, detail="Nie podano nowej nazwy użytkownika do aktualizacji.")
+
+    new_username = update_dict["username"]
+
+    if new_username == current_user.username:
+        raise HTTPException(status_code=400, detail="To już jest Twoja nazwa użytkownika!")
+
+    result = await session.execute(select(User).where(User.username == new_username))
+    existing_user = result.scalar_one_or_none()
+
+    if existing_user is not None:
+        raise HTTPException(status_code=400, detail="Nazwa użytkownika jest zajęta !")
+
+    current_user.username = new_username
+    session.add(current_user)
+    await session.commit()
+    await session.refresh(current_user)
+
+    return {
+        "message": f"Nazwa użytkownika została zmieniona na: {current_user.username}"
+    }
+
+
+@router.put("/update-password")
+async def update_user_password(
+        update_data: UserUpdate,
+        current_user: User = Depends(get_current_user),
+        session: AsyncSession = Depends(get_async_session)
+):
+    """Aktualizuje hasło użytkownika"""
+
+    update_dict = update_data.model_dump(exclude_unset=True)
+
+    if "password" not in update_dict:
+        raise HTTPException(status_code=400, detail="Nie podano nowego hasła!")
+
+    new_password = update_dict.pop("password")
+
+    if verify_password(new_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Nowe hasło nie może być takie samo jak stare!")
+
+    new_hashed_password = get_password_hash(new_password)
+
+    current_user.hashed_password = new_hashed_password
+
+    session.add(current_user)
+    await session.commit()
+    await session.refresh(current_user)
+
+    return {
+        "message": "Hasło zostało pomyślnie zaktualizowane!"
+    }
+
+@router.put("/update-disable-totp")
+async def update_user_disable_totp(
+        current_user: User = Depends(get_current_user),
+        session: AsyncSession = Depends(get_async_session)
+):
+    if not current_user.totp_enabled:
+        raise HTTPException(status_code=400,detail="TOTP 2F nie jest włączone!")
+
+    current_user.totp_enabled = False
+    session.add(current_user)
+    await session.commit()
+    await session.refresh(current_user)
+    return {
+        "message": "TOTP 2F zostało wyłączone!"
+    }

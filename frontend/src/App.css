@@ -1,0 +1,375 @@
+/* =========================================
+   GŁÓWNE ZMIENNE I RESET
+   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --primary: #111111;       /* Głęboka czerń dla głównych elementów */
+  --secondary: #666666;     /* Szary dla mniej ważnych tekstów */
+  --danger: #ff3b30;        /* Czerwony dla Admina i usuwania */
+  --bg: #fafafa;            /* Bardzo jasne, szare tło aplikacji */
+  --surface: #ffffff;       /* Czysta biel dla kart i paneli */
+  --border: #eaeaea;        /* Delikatne obramowania */
+  --radius: 10px;           /* Nowoczesne zaokrąglenia */
+  --transition: all 0.2s ease-in-out;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg);
+  color: var(--primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* =========================================
+   FORMULARZE (INPUTY I PRZYCISKI)
+   ========================================= */
+input {
+  width: 100%;
+  padding: 12px 16px;
+  margin: 8px 0;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--primary);
+  box-sizing: border-box;
+  transition: var(--transition);
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.1);
+}
+
+/* Uniwersalny styl dla przycisków */
+button {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  background-color: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+button:hover {
+  background-color: #333333;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* Przycisk akcji niszczącej (Kill / Usuń) */
+button.btn-danger {
+  background-color: transparent;
+  border: 1px solid var(--border);
+  color: var(--danger) !important;
+}
+
+button.btn-danger:hover {
+  background-color: #fff0f0;
+  border-color: var(--danger);
+}
+
+/* =========================================
+   NAWIGACJA (NAVBAR)
+   ========================================= */
+.navbar {
+  position: fixed;
+  top: 0; 
+  left: 0; 
+  right: 0;
+  height: 64px;
+  /* Efekt rozmytego szkła (Glassmorphism) */
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5%;
+  z-index: 1000;
+}
+
+.nav-logo a {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: none;
+  letter-spacing: -0.5px;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--secondary);
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: var(--transition);
+}
+
+.nav-links a:hover {
+  color: var(--primary);
+}
+
+/* Przycisk akcji (np. Zarejestruj) w Navbarze */
+.nav-btn-primary {
+  background-color: var(--primary);
+  color: #fff !important;
+  padding: 8px 18px;
+  border-radius: var(--radius);
+}
+
+.nav-btn-primary:hover {
+  background-color: #333;
+  transform: translateY(-1px);
+}
+
+/* Wyróżniony link Admina */
+.nav-admin-link {
+  color: var(--danger) !important;
+  font-weight: 600 !important;
+}
+
+/* =========================================
+   SEKCJA UŻYTKOWNIKA W NAV
+   ========================================= */
+.nav-user-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-left: 1px solid var(--border);
+  padding-left: 24px;
+  margin-left: 8px;
+}
+
+.nav-user-info span {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--primary);
+}
+
+.nav-logout-btn {
+  background: #f1f1f1;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--primary);
+  transition: var(--transition);
+  width: auto;
+  margin: 0;
+}
+
+.nav-logout-btn:hover {
+  background: #e2e2e2;
+  color: var(--danger); /* Lekkie ostrzeżenie przy wylogowywaniu */
+}
+
+/* =========================================
+   GŁÓWNY KONTENER I KARTY
+   ========================================= */
+.main-content {
+  margin-top: 64px; /* Zostawiamy miejsce na zablokowany Navbar */
+  padding: 40px 5%;
+  display: flex;
+  justify-content: center;
+  flex: 1;
+}
+
+/* Uniwersalny kontener dla małych stron (Login, Register, Dashboard) */
+.container {
+  background: var(--surface);
+  padding: 40px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.03); /* Bardzo delikatny cień */
+}
+
+.container h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.5rem;
+  letter-spacing: -0.5px;
+}
+
+.container p {
+  color: var(--secondary);
+  font-size: 0.95rem;
+}
+
+/* =========================================
+   RESPONSYWNOŚĆ (TELEFONY)
+   ========================================= */
+@media (max-width: 768px) {
+  .nav-links {
+    gap: 12px;
+  }
+  
+  .nav-user-info {
+    padding-left: 12px;
+    margin-left: 0;
+    gap: 10px;
+  }
+  
+  .nav-user-info span {
+    display: none; /* Ukrywamy login na telefonach, zostawiamy sam przycisk */
+  }
+  
+  .main-content {
+    padding: 20px 5%;
+  }
+}
+
+/* =========================================
+   PANEL ADMINISTRATORA (ADMIN PANEL)
+   ========================================= */
+
+/* Nadpisujemy szerokość dla Admin Panelu, żeby siatka miała miejsce */
+.admin-container {
+  width: 100%;
+  max-width: 1100px; /* Szerszy kontener na siatkę kart */
+  margin: 0 auto;
+}
+
+.admin-container h1 {
+  text-align: left;
+  margin-bottom: 30px;
+  font-size: 1.8rem;
+  letter-spacing: -1px;
+}
+
+/* =========================================
+   KARTY WĘZŁÓW (NODE CARDS)
+   ========================================= */
+.node-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: var(--transition);
+}
+
+.node-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  border-color: #ddd;
+}
+
+/* Układ danych w karcie (Tekst po lewej, wartość po prawej) */
+.node-card p {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 14px 0;
+  font-size: 0.95rem;
+  border-bottom: 1px solid #f5f5f5;
+  padding-bottom: 8px;
+}
+
+.node-card p:last-of-type {
+  border-bottom: none;
+}
+
+.node-card p strong {
+  color: var(--secondary);
+  font-weight: 500;
+}
+
+.node-card p span {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Naprawa marginesów inputa wewnątrz głównej karty statystyk */
+.node-card input {
+  margin: 0; /* Resetujemy margines, żeby ładnie zrównał się z przyciskiem w flexboxie */
+}
+
+/* =========================================
+   SIATKA KART (CSS GRID)
+   ========================================= */
+.nodes-grid {
+  display: grid;
+  /* Automatycznie dopasowuje ilość kolumn; min. szerokość karty to 300px */
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  width: 100%;
+}
+
+/* =========================================
+   STATUSY (PILLS) I PRZYCISKI
+   ========================================= */
+.status-pill {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.status-active {
+  background-color: #e3fbed; /* Bardzo jasny zielony */
+  color: #24a159; /* Ciemny, nasycony zielony */
+}
+
+.status-inactive {
+  background-color: #f2f2f2;
+  color: var(--secondary);
+}
+
+/* Przycisk akcji niszczącej (Kill) */
+.btn-danger {
+  background-color: transparent;
+  border: 1px solid var(--border);
+  color: var(--danger) !important;
+}
+
+.btn-danger:hover {
+  background-color: #fff0f0;
+  border-color: var(--danger);
+  transform: translateY(-1px);
+}
+
+/* Komunikat o sukcesie (np. po rejestracji) */
+.success-msg {
+  color: var(--success-color); /* lub #34c759 */
+  background: #f2faf3;
+  padding: 10px 12px;
+  border: 1px solid #d1f4d9;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+}

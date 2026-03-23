@@ -2,65 +2,77 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
 import { useAuth } from './context/AuthContext';
-import { NodesProvider } from './context/NodesContext';
-
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 import { Login } from './components/Login'
 import { Register } from './components/Register';
 import { Settings2FA } from './components/Settings';
 import { AdminPanel } from './pages/AdminPanel';
+import { SettingsPage } from './pages/SettingsPage';
 
-// Tymczasowe komponenty (Zaraz zamienimy je na prawdziwe pliki!)
-const Home = () => <h2>Strona Główna (Dostępna dla każdego)</h2>;
-const Dashboard = () => <h2>dashboard (Dostępna dla każdego)</h2>;
+import './App.css'; // Importujemy nasze nowe style
+
+// Komponenty tymczasowe z klasami CSS
+const Home = () => <div className="container"><h2>Strona Główna</h2><p>Dostępna dla każdego.</p></div>;
+const Dashboard = () => <div className="container"><h2>Dashboard</h2><p>Witaj w swoim panelu.</p></div>;
 
 function App() {
   const { isAuthenticated, logout, user } = useAuth();
 
   return (
     <Router>
-      <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-        {/* Prosta Nawigacja */}
-        <nav style={{ marginBottom: '20px', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>
+      <div className="app-wrapper">
+        {/* Nowoczesna Nawigacja */}
+        <nav className="navbar">
+          <div className="nav-logo">
+            <Link to="/">APP_LOGO</Link>
+          </div>
           
-          {!isAuthenticated ? (
-            <>
-            <Link to="/login" style={{ marginRight: '10px' }}>Zaloguj</Link>
-            <Link to="/register" style={{ marginRight: '10px' }}>Zarejestruj</Link>
-            </>
-          ) : (
-            <>
-                <Link to="/dashboard" style={{ marginRight: '10px' }}>Mój Panel</Link>
+          <div className="nav-links">
+            {!isAuthenticated ? (
+              <>
+                <Link to="/login">Zaloguj</Link>
+                <Link to="/register" className="nav-btn-primary">Zarejestruj</Link>
+              </>
+            ) : (
+              <>
+                <Link to="/dashboard">Panel</Link>
+                <Link to="/settings">Ustawienia</Link>
+                <Link to="/settings2FA">2FA</Link>
+                
                 {user?.role === 'admin' && (
-                  <Link to="/admin" style={{ marginRight: '10px', color: 'red' }}>Panel Admina</Link>
+                  <Link to="/admin" className="nav-admin-link">Admin</Link>
                 )}
-
-              <Link to="/settings2FA" style={{ marginRight: '10px' }}>Ustaw 2FA</Link>
-              <button onClick={logout} style={{ marginLeft: '10px' }}>Wyloguj ({user.username})</button>
-            </>
-          )}
+                
+                <div className="nav-user-info">
+                  <span>{user.username}</span>
+                  <button onClick={logout} className="nav-logout-btn">Wyloguj</button>
+                </div>
+              </>
+            )}
+          </div>
         </nav>
 
-        {/* Definicja Ścieżek (Routing) */}
-        <Routes>
-          {/* Strony publiczne */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register/>}/>
+        {/* Główny kontener na treści */}
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register/>}/>
 
+            {/* Ścieżki chronione */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/settings" element={<SettingsPage/>}/>
+              <Route path="/settings2FA" element={<Settings2FA/>}/>
+            </Route>
 
-          {/* Strony CHRONIONE (Tylko dla zalogowanych) */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/settings2FA" element={<Settings2FA/>}/>
-          </Route>
-
-          {/* Strony CHRONIONE (Tylko dla Admina) */}
-          <Route element={<ProtectedRoute requireAdmin={true} />}>
-            <Route path="/admin" element={<AdminPanel />} />
-          </Route>
-        </Routes>
+            {/* Ścieżki Admina */}
+            <Route element={<ProtectedRoute requireAdmin={true} />}>
+              <Route path="/admin" element={<AdminPanel />} />
+            </Route>
+          </Routes>
+        </main>
       </div>
     </Router>
   );

@@ -5,13 +5,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from db import init_db
-from backend.auth import router_user as auth_router
-from nodes import router as nodes_router
+from nodes.state import reset_database
+
+from nodes import router_nodes
+from auth import router_user
+from websockets_nodes import router_ws_nodes
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    await reset_database()
     yield
 
 
@@ -27,8 +31,9 @@ app.add_middleware(
 )
 
 
-app.include_router(auth_router.router)
-app.include_router(nodes_router)
+app.include_router(router_user.router)
+app.include_router(router_nodes.router)
+app.include_router(router_ws_nodes.router)
 
 
 if __name__ == "__main__":

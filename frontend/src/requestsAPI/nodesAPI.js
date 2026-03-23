@@ -29,7 +29,6 @@ export const getNodeInfo = async (id) =>{
 
 export const addNewNode = async(id) =>{
     try{
-        console.log(id);
         const reponse = await api.post(`http://127.0.0.1:8000/nodes/${id}`);
         const data = await reponse.data;
         

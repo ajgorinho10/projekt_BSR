@@ -11,11 +11,9 @@ const api = axios.create({
 
 // 2. Request Interceptor: Zanim wyślesz zapytanie, doklej token
 api.interceptors.request.use(
-    async (config) => {
-        // Wyciągamy access_token z pamięci przeglądarki (localStorage)
-        const accessToken = await localStorage.getItem('access_token');
+     (config) => {
+        const accessToken = localStorage.getItem('access_token');
         
-        // Jeśli mamy token, dodajemy go do nagłówka Authorization
         if (accessToken) {
             config.headers['Authorization'] = `Bearer ${accessToken}`;
         }
@@ -26,6 +24,20 @@ api.interceptors.request.use(
     }
 );
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+    failedQueue = [];
+};
+
 // 3. Response Interceptor: Co zrobić, gdy backend rzuci błędem? (Magia odświeżania)
 api.interceptors.response.use(
     (response) => {
@@ -33,6 +45,11 @@ api.interceptors.response.use(
         return response;
     },
     async (error) => {
+
+        if (!error || !error.config) {
+            console.error("Błąd sieciowy lub blokada CORS:", error);
+            return Promise.reject(error);
+        }
         // Zapisujemy oryginalne zapytanie, które zakończyło się błędem
         const originalRequest = error.config;
 
@@ -43,7 +60,19 @@ api.interceptors.response.use(
         // Jeśli błąd to 401 (Brak autoryzacji) i nie próbowaliśmy go jeszcze ponowić...
         if (error.response?.status === 401 && !originalRequest._retry) {
             
+            if (isRefreshing) {
+                return new Promise(function(resolve, reject) {
+                    failedQueue.push({ resolve, reject });
+                }).then(token => {
+                    originalRequest.headers['Authorization'] = 'Bearer ' + token;
+                    return api(originalRequest);
+                }).catch(err => {
+                    return Promise.reject(err);
+                });
+            }
+
             originalRequest._retry = true;
+            isRefreshing = true;
 
             try {
                 // Wyciągamy refresh_token
@@ -57,13 +86,18 @@ api.interceptors.response.use(
                     refresh_token: refreshToken
                 });
 
+                const newAccessToken = response.data.access_token;
+                const newRefreshToken = response.data.refresh_token;
+
                 // 1. Zapisujemy NOWE tokeny w przeglądarce
-                await localStorage.setItem('access_token', response.data.access_token);
-                await localStorage.setItem('refresh_token', response.data.refresh_token);
+                localStorage.setItem('access_token', newAccessToken);
+                localStorage.setItem('refresh_token', newRefreshToken);
+                console.log("Zapisuje nowy token");
 
                 // 2. Podmieniamy stary token w oryginalnym zapytaniu na nowy
-                originalRequest.headers['Authorization'] = `Bearer ${response.data.access_token}`;
+                originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
 
+                processQueue(null, newAccessToken);
                 // 3. Powtarzamy oryginalne zapytanie (np. do /me lub /admin) z nowym tokenem!
                 return api(originalRequest);
 
@@ -74,6 +108,8 @@ api.interceptors.response.use(
                 localStorage.removeItem('refresh_token');
                 window.location.href = '/login';
                 return Promise.reject(refreshError);
+            }finally{
+                isRefreshing = false;
             }
         }
 

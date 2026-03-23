@@ -1,2 +1,2 @@
-from .state import nodes_db
+from .state import *
 from .router_nodes import *

@@ -183,29 +183,45 @@ def HEARTBEAT():
                 LEADER_ID = max(ELECTION_MSGS)
 
 
-
 async def connect_to_api():
-    uri = f"ws://127.0.0.1:8000/nodes/ws_nodes?api_key={NODES_KEY}"
-    last_data = None
+    uri = f"ws://127.0.0.1:8000/ws/nodes?api_key={NODES_KEY}"
 
-    try:
-        async with websockets.connect(uri) as websocket:
-            print("Połączono z serwerem!")
+    while True:
+        last_data = None
 
-            while True:
-                data = {"leader_id": LEADER_ID,"node_id": NODE_ID,"status": STATUS}
-                msg = json.dumps(data)
-                if msg != last_data:
-                    await websocket.send(msg)
-                    last_data = msg
+        try:
+            async with websockets.connect(uri) as websocket:
+                print("Połączono z serwerem API!")
 
-                await asyncio.sleep(2)
+                while True:
+                    data = {"leader_id": LEADER_ID, "node_id": NODE_ID, "status": STATUS}
+                    msg = json.dumps(data)
 
+                    if msg != last_data:
+                        await websocket.send(msg)
+                        last_data = msg
 
-    except websockets.exceptions.ConnectionClosed as e:
-        print(f"Rozłączono z serwerem: {e}")
-    except Exception as e:
-        print(f"Wystąpił błąd: {e}")
+                    # --- ZMIANA TUTAJ: Zamiast głuchego sleepa, aktywne nasłuchiwanie ---
+                    try:
+                        # Czekamy na wiadomość max 2 sekundy (działa jak sleep(2))
+                        await asyncio.wait_for(websocket.recv(), timeout=2.0)
+                    except asyncio.TimeoutError:
+                        # Minęły 2 sekundy, serwer nic nie wysłał - to normalne, kręcimy dalej!
+                        pass
+                    # ---------------------------------------------------------------------
+
+        except websockets.exceptions.ConnectionClosed as e:
+            print(f"Rozłączono z serwerem (ConnectionClosed): {e}. Próba wznowienia...")
+        except ConnectionRefusedError:
+            print("Serwer API jest wyłączony (ConnectionRefused). Próba wznowienia...")
+        except OSError:
+            # Często Windows rzuca OSError (np. WinError 10054) przy ubiciu serwera
+            print("Błąd sieci (OS/Gniazdo). Próba wznowienia...")
+        except Exception as e:
+            print(f"Wystąpił nieoczekiwany błąd: {e}. Próba wznowienia...")
+
+        print("Czekam 5 sekund przed ponownym połączeniem...")
+        await asyncio.sleep(5)
 
 
 @app.on_event("startup")
