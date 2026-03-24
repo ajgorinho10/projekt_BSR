@@ -16,10 +16,10 @@ def send_message(typ, node_id=None, data=None, user=None, task_id=None, client_i
         channel.exchange_declare(exchange='bully_cluster', exchange_type='fanout')
 
         wiadomosc = {"od_wezla": config.NODE_ID, "typ": typ}
+
         if node_id: wiadomosc["do_wezla"] = node_id
-        if user and data:
-            wiadomosc["user"] = user
-            wiadomosc["data"] = data
+        if user: wiadomosc["user"] = user
+        if data: wiadomosc["data"] = data
         if task_id: wiadomosc["task_id"] = task_id
         if client_id: wiadomosc["client_id"] = client_id
 

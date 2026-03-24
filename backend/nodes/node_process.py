@@ -8,7 +8,7 @@ from starlette import status
 from nodes import config
 from nodes import state
 
-from .database_utils import add_data_to_db_async,delete_data_from_db_async
+from .database_utils import add_data_to_db_async,delete_data_from_db_async,get_read_data_async
 from .messaging import send_message
 from .cluster_logic import rabbitmq_listener, heartbeat_worker
 from database import init_db_node, Data
@@ -76,18 +76,22 @@ async def websocket_client_endpoint(websocket: WebSocket):
 
             res = requests.post(f"{config.API_ADDRESS}/nodes/verify-user?token={token}&api_key={config.NODES_KEY}")
             if res.status_code != 200:
+                #print(res.status_code)
                 await websocket.send_json({"error": "Auth failed"})
                 continue
 
             username = res.json().get("username", "Unknown")
-            print(dane, username, task_id)
-            if config.NODE_ID == state.LEADER_ID:
+            #print(dane, username, task_id)
+            if action == "get_data":
+                await get_read_data(websocket, dane, username,task_id)
+
+            elif config.NODE_ID == state.LEADER_ID:
 
                 match action:
                     case "save_data":
                         await add_by_leader(websocket, dane, username, task_id)
                     case "delete_data":
-                        print("XD")
+                        #print("XD")
                         await delete_by_leader(websocket, dane, username,task_id)
 
             else:
@@ -95,7 +99,7 @@ async def websocket_client_endpoint(websocket: WebSocket):
                     case "save_data":
                         send_message(config.TYPE_DATA_NEW, state.LEADER_ID, dane, user=username, task_id=task_id, client_id=c_id)
                     case "delete_data":
-                        print("XD")
+                        #print("XD")
                         send_message(config.TYPE_DATA_DELETE, state.LEADER_ID, dane, user=username, task_id=task_id, client_id=c_id)
 
     except WebSocketDisconnect:
@@ -121,7 +125,7 @@ def deactivate_node():
 async def delete_by_leader(websocket,dane,username,task_id):
     try:
         if await delete_data_from_db_async(dane,username):
-            await websocket.send_json({"task_id": task_id, "status": "success", "message": "Usunięto (Lider)"})
+            await websocket.send_json({"task_id": task_id, "status": "success", "message": "Usunięto (Lider)","data":dane,"data_type":"delete_from_list"})
         else:
             raise Exception("Brak danych!")
     except Exception:
@@ -129,9 +133,24 @@ async def delete_by_leader(websocket,dane,username,task_id):
 
 async def add_by_leader(websocket,dane,username,task_id):
     try:
-        if await add_data_to_db_async(Data(data=dane, username=username)):
-            await websocket.send_json({"task_id": task_id, "status": "success", "message": "Zapisano (Lider)"})
+        data_from_db = await add_data_to_db_async(Data(data=dane, username=username))
+        if data_from_db:
+            print(f"Z bazy: {data_from_db} | TYP: {type(data_from_db)}")
+            new_record_dict = data_from_db.model_dump()
+            await websocket.send_json({"task_id": task_id, "status": "success", "message": "Zapisano (Lider)", "data": new_record_dict,"data_type":"add_to_list"})
         else:
             raise Exception("Błąd podczas zapisywania (Lider)!")
-    except Exception:
+    except Exception as e:
+        print(e)
         await websocket.send_json({"task_id": task_id, "status": "error", "message": "Błąd podczas zapisywania (Lider)"})
+
+async def get_read_data(websocket,dane,username,task_id):
+    try:
+        data = await get_read_data_async(username)
+        data_to_send = [item.model_dump() for item in data]
+        await websocket.send_json({"task_id": task_id, "status": "success", "message": "Pomyślnie pobrano dane", "data": data_to_send,"data_type":"new"})
+
+    except Exception as e:
+        print(e)
+        await websocket.send_json(
+            {"task_id": task_id, "status": "error", "message": "Błąd pobierania danych (Lider)"})

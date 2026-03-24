@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { useNodes } from "../context/NodesContext.jsx";
 import { useNodeWebSocket } from "../hooks/useNodeWebSocket.js"; // Dostosuj ścieżkę importu!
 import api from "../api.js";
@@ -17,10 +17,13 @@ export const DashboardPage = () => {
         wsStatus,
         message,
         isError,
+        dataFromNode,
         sendDataToNode,
         deleteDataToNode,
+        getDataFromNode,
         clearMessage
     } = useNodeWebSocket(selectedNode, nodes, setData,refreshKey);
+
 
     const handleSendData = () => {
         sendDataToNode(data);
@@ -29,6 +32,10 @@ export const DashboardPage = () => {
     const handleDeleteData = () => {
         deleteDataToNode(deleteId);
         setDeleteId("");
+    };
+
+    const handleGetData = () =>{
+        getDataFromNode();
     };
 
     const refreshToken = () =>{
@@ -52,6 +59,7 @@ export const DashboardPage = () => {
         clearMessage();
     }
 
+
     const getStatusColor = () => {
         if (wsStatus === "CONNECTED") return "#24a159";
         if (wsStatus === "CONNECTING") return "#f39c12";
@@ -60,6 +68,7 @@ export const DashboardPage = () => {
 
     return (
         <div className="admin-container">
+            <h1>Dashboard</h1>
             <p style={{ fontSize: '1.2rem', marginBottom: '20px' }}>
                 Ilość aktywnych węzłów: <strong>{numberOfNodes}</strong>
             </p>
@@ -136,9 +145,37 @@ export const DashboardPage = () => {
                 </div>
             )}
 
-            <p style={{ marginTop: "40px", marginBottom: "20px", fontSize: "1.2rem" }}>
+
+            {(wsStatus==="CONNECTED")&&(
+                <div className="node-card" style={{marginTop:20}}>
+                    <div style={{justifyContent:"space-between",display:"flex"}}>
+                        <h2>Dane przechowywane w bazie</h2>
+                        <button onClick={handleGetData} style={{maxWidth: "20%",justifyContent:"center"}}>Odśwież dane</button>
+                    </div>
+
+                    <div className="nodes-grid" style={{marginTop: 20,display:"grid",justifyContent:"center"}}>
+                        {(dataFromNode?.length > 0) && (
+                            dataFromNode.map((data)=>{
+                                const id = data?.id;
+                                const text = data?.data;
+
+                                return(
+                                    <div key={id} className="node-card">
+                                        <p><strong>ID danych</strong> <span>#{id}</span></p>
+                                        <p><strong>Wartość</strong> <span>{text}</span></p>
+                                    </div>
+                                );
+                            }
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {numberOfNodes > 0 &&
+                <p style={{ marginTop: "40px", marginBottom: "20px", fontSize: "1.2rem" }}>
                 <strong>Lista dostępnych węzłów</strong>
-            </p>
+                </p>
+            }
 
             <div className="nodes-grid">
                 {nodes && nodes.map((node) => {

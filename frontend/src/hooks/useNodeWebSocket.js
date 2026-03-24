@@ -5,23 +5,20 @@ export const useNodeWebSocket = (selectedNode, nodes, onSuccess,refreshKey) => {
     const [wsStatus, setWsStatus] = useState("DISCONNECTED");
     const [message, setMessage] = useState("");
     const [isError, setIsError] = useState(false);
+    const [dataFromNode,setDataFromNode] = useState([]);
 
     const wsRef = useRef(null);
 
-    // KROK 1: Wyciągamy obliczanie URL przed useEffect.
-    // Dzięki temu URL zmienia się tylko, gdy faktycznie wybierzemy inny węzeł.
     const foundNode = nodes.find(node => String(node?.node_id) === String(selectedNode));
     const wsUrl = foundNode ? foundNode.url.replace(/^http/, 'ws') + "/ws/client" : null;
 
 
     useEffect(() => {
-        // Czyszczenie starego połączenia
         if (wsRef.current) {
             wsRef.current.close();
             wsRef.current = null;
         }
 
-        // Jeśli nie mamy URL (bo nic nie wybrano), uciekamy
         if (!wsUrl) {
             setWsStatus("DISCONNECTED");
             return;
@@ -44,9 +41,30 @@ export const useNodeWebSocket = (selectedNode, nodes, onSuccess,refreshKey) => {
                 setIsError(true);
                 setMessage(response.error || response.message || "Błąd węzła.");
             } else {
-                // Tutaj wejdzie TYLKO jeśli response.status istnieje i nie jest równy "error"
                 setIsError(false);
                 setMessage(response.message || "Lider pomyślnie zapisał dane!");
+                console.log("odpowiedz:",response);
+                if(response?.data){
+
+                    if(response?.data_type === "new"){
+                        setDataFromNode(response?.data || []);
+
+                    }else if(response?.data_type === "add_to_list"){
+
+                        setDataFromNode((prevData)=>{
+                            const newItem = response?.data;
+                            if (prevData.find(item => item.id === newItem.id)) {
+                                return prevData;
+                            }
+
+                            return [...prevData, response?.data];
+                        });
+                    }else if(response?.data_type === "delete_from_list"){
+                        setDataFromNode(prev => prev.filter(item => Number(item.id) !== Number(response?.data)));
+                    }
+                }else if(response?.data_id){
+                    console.log("id",response?.data_id)
+                }
             }
         };
 
@@ -63,13 +81,12 @@ export const useNodeWebSocket = (selectedNode, nodes, onSuccess,refreshKey) => {
 
         wsRef.current = socket;
 
-        // Cleanup odpala się teraz tylko przy demontażu LUB zmianie wsUrl
         return () => {
             if (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING) {
                 socket.close();
             }
         };
-    }, [wsUrl]); // KROK 2: KRYTYCZNA ZMIANA - zależnością jest TYLKO zmiana URL!
+    }, [wsUrl]);
 
     const sendDataToNode = (dataToSend) => {
         setMessage("");
@@ -106,6 +123,7 @@ export const useNodeWebSocket = (selectedNode, nodes, onSuccess,refreshKey) => {
 
         setIsError(false);
         setMessage("Wysłano zadanie do węzła. Czekam na odpowiedź lidera...");
+
     };
 
     const deleteDataToNode = (dataId) => {
@@ -143,9 +161,40 @@ export const useNodeWebSocket = (selectedNode, nodes, onSuccess,refreshKey) => {
 
         setIsError(false);
         setMessage("Wysłano zadanie do węzła. Czekam na odpowiedź lidera...");
+
+    };
+
+    const getDataFromNode = () => {
+        setMessage("");
+
+        if (!selectedNode) {
+            setIsError(true);
+            setMessage("Proszę wybrać węzeł z listy!");
+            return;
+        }
+
+        if (wsStatus !== "CONNECTED" || !wsRef.current) {
+            setIsError(true);
+            setMessage("Brak aktywnego połączenia z węzłem!");
+            return;
+        }
+
+        const taskId = "task_get_" + Date.now();
+        const token = localStorage.getItem("access_token");
+
+        const payload = {
+            action: "get_data",
+            task_id: taskId,
+            token: token,
+        };
+
+        wsRef.current.send(JSON.stringify(payload));
+
+        setIsError(false);
+        //setMessage("Wysłano zadanie do węzła. Czekam na odpowiedź lidera...");
     };
 
     const clearMessage = () => setMessage("");
 
-    return { wsStatus, message, isError, sendDataToNode, deleteDataToNode, clearMessage };
+    return { wsStatus, message, isError, dataFromNode, sendDataToNode, deleteDataToNode, getDataFromNode, clearMessage };
 };

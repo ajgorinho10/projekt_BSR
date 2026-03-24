@@ -14,7 +14,7 @@ from database import Data
 
 
 def start_election():
-    if state.STATUS != "ACTIVE" or state.ELECTION_IN_PROGRESS:
+    if state.STATUS != config.TYPE_STATUS_ACTIVE or state.ELECTION_IN_PROGRESS:
         return
     print(f"\n[Węzeł {config.NODE_ID}] Rozpoczynam elekcję!")
     if len(state.ELECTION_MSGS) != 0:
@@ -30,7 +30,7 @@ def start_election():
 def heartbeat_worker():
     while True:
         time.sleep(2)
-        if state.STATUS != "ACTIVE": continue
+        if state.STATUS != config.TYPE_STATUS_ACTIVE: continue
         if len(state.ELECTION_MSGS) == 0 and state.ELECTION_IN_PROGRESS:
             state.ELECTION_IN_PROGRESS = False
             state.LEADER_ID = config.NODE_ID
@@ -57,7 +57,7 @@ def rabbitmq_listener():
         typ = msg.get("typ")
         do = msg.get("do_wezla")
 
-        if od == config.NODE_ID or (do and do != config.NODE_ID) or state.STATUS != "ACTIVE":
+        if od == config.NODE_ID or (do and do != config.NODE_ID) or state.STATUS != config.TYPE_STATUS_ACTIVE:
             return
 
         if config.NODE_ID < od: state.ELECTION_MSGS.add(od)
@@ -69,11 +69,16 @@ def rabbitmq_listener():
             print(dane,user,client_id,task_id)
             try:
                 nowe_dane = Data(data=dane,username=user)
-                if add_data_to_db_sync(nowe_dane):
-                    send_message(config.TYPE_DATA_OK, od, task_id=task_id, client_id=client_id)
+                dane_to_user = add_data_to_db_sync(nowe_dane)
+                print("id: ", dane_to_user)
+                if dane_to_user is not False:
+                    print("wysyłam")
+                    new_record_dict = dane_to_user.model_dump()
+                    send_message(config.TYPE_DATA_OK, node_id=od, data=new_record_dict, task_id=task_id, client_id=client_id)
                 else:
                     raise Exception("Błąd zapisu!")
             except Exception as e:
+                print(e)
                 send_message(config.TYPE_DATA_FAIL, od, task_id=task_id, client_id=client_id)
 
         elif typ == config.TYPE_DATA_DELETE:
@@ -82,20 +87,25 @@ def rabbitmq_listener():
 
             print(dane, user, client_id, task_id)
             try:
-                if delete_data_from_db_sync(data_id=dane, username=user):
-                    send_message(config.TYPE_DATA_OK, od, task_id=task_id, client_id=client_id)
+                data_id = delete_data_from_db_sync(data_id=dane, username=user)
+                if data_id is not False:
+                    send_message(config.TYPE_DATA_OK_DELETE, od, data=data_id ,task_id=task_id, client_id=client_id)
                 else:
                     raise Exception("Brak danych!")
             except Exception as e:
                 send_message(config.TYPE_DATA_FAIL, od, task_id=task_id, client_id=client_id)
 
-        elif typ == config.TYPE_DATA_OK:
+        elif typ == config.TYPE_DATA_OK or typ == config.TYPE_DATA_OK_DELETE:
             t_id, c_id = msg.get("task_id"), msg.get("client_id")
             if c_id in state.REACT_CLIENTS:
                 ws = state.REACT_CLIENTS[c_id]
+                dane_to_user = msg.get("data")
+
+                print("id od węzła:",dane_to_user)
+                type_send = "delete_from_list" if typ == config.TYPE_DATA_OK_DELETE else "add_to_list"
 
                 async def notify():
-                    await ws.send_json({"task_id": t_id, "status": "success", "message": "Lider wykonał zadanie!"})
+                    await ws.send_json({"task_id": t_id, "status": "success", "message": "Lider wykonał zadanie!", "data": dane_to_user, "data_type": type_send})
 
                 asyncio.run_coroutine_threadsafe(notify(), state.MAIN_LOOP)
 
@@ -122,6 +132,8 @@ def rabbitmq_listener():
         elif typ == config.TYPE_MSG_HEARTBEAT:
             state.LAST_HEARTBEAT = time.time()
             if config.NODE_ID > od: start_election()
+            else:
+                state.LEADER_ID = od
 
     channel.basic_consume(queue=result.method.queue, on_message_callback=callback, auto_ack=True)
     channel.start_consuming()

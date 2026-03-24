@@ -14,7 +14,7 @@ async def add_data_to_db_async(dane: Data):
             session.add(dane)
             await session.commit()
             await session.refresh(dane)
-            return True
+            return dane
     except Exception as e:
         print(f"Błąd zapisu async: {e}")
         return False
@@ -41,7 +41,7 @@ async def delete_data_from_db_async(data_id: int,username: str):
             if data_to_delete and data_to_delete.username == username:
                 await session.delete(data_to_delete)
                 await session.commit()
-                return True
+                return data_id
 
             return False # Nie znaleziono ID
     except Exception as e:
@@ -53,3 +53,17 @@ def delete_data_from_db_sync(data_id: int,username: str):
         return False
     future = asyncio.run_coroutine_threadsafe(delete_data_from_db_async(data_id,username), state.MAIN_LOOP)
     return future.result()
+
+
+async def get_read_data_async(username: str):
+    try:
+        async for session in get_async_session_node():
+            statement = select(Data).where(Data.username == str(username))
+            results = await session.execute(statement)
+
+            data_list = results.scalars().all()
+            return data_list
+
+    except Exception as e:
+        print(f"Błąd pobieraniu async: {e}")
+        return False
