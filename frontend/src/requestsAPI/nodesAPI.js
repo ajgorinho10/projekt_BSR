@@ -8,9 +8,7 @@ export const getAllNodes = async () =>{
         
         return data
     }catch(error){
-        console.log(error)
-        
-        return null
+        throw error
     }
 };
 
@@ -21,9 +19,7 @@ export const getNodeInfo = async (id) =>{
         
         return data;
     }catch(error){
-        console.log(error)
-        
-        return null
+        throw error
     }
 };
 
@@ -34,9 +30,7 @@ export const addNewNode = async(id) =>{
         
         return data;
     }catch(error){
-        console.log(error)
-        
-        return null
+        throw error
     }
 };
 
@@ -47,9 +41,7 @@ export const KillNode = async(id) =>{
         
         return data;
     }catch(error){
-        console.log(error)
-        
-        return null
+        throw error
     }
 };
 
@@ -60,8 +52,6 @@ export const StopStartNode = async (id,stop) =>{
         
         return reponse.data;
     }catch(error){
-        console.log(error)
-        
-        return null
+        throw error
     }
 }

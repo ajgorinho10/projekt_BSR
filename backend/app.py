@@ -1,15 +1,17 @@
-from contextlib import asynccontextmanager
+import sys
 
+from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import init_db
-from nodes.state import reset_database
+from nodes import reset_database
 
 from nodes import router_nodes
 from auth import router_user
 from websockets_nodes import router_ws_nodes
+from nodes.node_process import *
 
 
 @asynccontextmanager
@@ -18,6 +20,7 @@ async def lifespan(app: FastAPI):
     await reset_database()
     yield
 
+sys.path.append("")
 
 app = FastAPI(title="Bully Cluster",lifespan=lifespan)
 

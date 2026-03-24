@@ -8,9 +8,7 @@ export const promoteTo= async (role) =>{
         
         return data
     }catch(error){
-        console.log(error)
-        
-        return null
+        throw error;
     }
 };
 

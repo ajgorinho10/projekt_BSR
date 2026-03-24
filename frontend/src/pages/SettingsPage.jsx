@@ -22,7 +22,11 @@ export const SettingsPage = () => {
     };
 
     const passwordChange = async () => {
-        if (!newPass) return;
+        if (!newPass) {
+            setIsError(true);
+            setMessage("Wartość pola nie może być pusta");
+            return;
+        }
         setMessage('');
         try {
             await updateUserPassword(newPass);
@@ -37,7 +41,11 @@ export const SettingsPage = () => {
     };
 
     const loginChange = async () => {
-        if (!newLogin) return;
+        if (!newPass) {
+            setIsError(true);
+            setMessage("Wartość pola nie może być pusta");
+            return;
+        }
         setMessage(''); // Czyścimy stare wiadomości
         try {
             // Wywołujemy funkcję aktualizującą

@@ -1,6 +1,16 @@
 import psutil
 import redis.asyncio as redis
 import json
+import time
+
+STATUS = "ACTIVE"
+LEADER_ID = None
+ELECTION_IN_PROGRESS = False
+LAST_HEARTBEAT = time.time()
+START_UP_TIME = time.time()
+ELECTION_MSGS = set()
+REACT_CLIENTS = {}
+MAIN_LOOP = None
 
 redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
 

@@ -29,6 +29,7 @@ async def websocket_nodes(websocket: WebSocket, api_key: str = Query(None)):
     try:
         while True:
             data = await websocket.receive_json()
+            print(data)
             #nodes_details_db[data["node_id"]] = data
             await add_nodes_details_db(data["node_id"],data)
             idN = data["node_id"]

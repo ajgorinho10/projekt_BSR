@@ -9,6 +9,7 @@ import { Register } from './components/Register';
 import { Settings2FA } from './components/Settings';
 import { AdminPanel } from './pages/AdminPanel';
 import { SettingsPage } from './pages/SettingsPage';
+import {DashboardPage} from "./pages/Dashboard.jsx";
 
 import './App.css'; // Importujemy nasze nowe style
 
@@ -62,7 +63,7 @@ function App() {
 
             {/* Ścieżki chronione */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/settings" element={<SettingsPage/>}/>
               <Route path="/settings2FA" element={<Settings2FA/>}/>
             </Route>
