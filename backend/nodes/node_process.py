@@ -42,9 +42,13 @@ async def connect_to_api():
         try:
             async with websockets.connect(uri) as ws:
                 print("Connected -> API")
+                last_send = None
                 while True:
-                    await ws.send(
-                        json.dumps({"leader_id": state.LEADER_ID, "node_id": config.NODE_ID, "status": state.STATUS}))
+                    data = {"leader_id": state.LEADER_ID, "node_id": config.NODE_ID, "status": state.STATUS}
+                    if data != last_send:
+                        await ws.send(
+                            json.dumps({"leader_id": state.LEADER_ID, "node_id": config.NODE_ID, "status": state.STATUS}))
+                        last_send = data
                     await asyncio.sleep(2)
         except Exception as e:
             print(e)

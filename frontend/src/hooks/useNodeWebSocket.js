@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
+import api from "../api.js";
 
-export const useNodeWebSocket = (selectedNode, nodes, onSuccess) => {
+export const useNodeWebSocket = (selectedNode, nodes, onSuccess,refreshKey) => {
     const [wsStatus, setWsStatus] = useState("DISCONNECTED");
     const [message, setMessage] = useState("");
     const [isError, setIsError] = useState(false);
@@ -11,6 +12,7 @@ export const useNodeWebSocket = (selectedNode, nodes, onSuccess) => {
     // Dzięki temu URL zmienia się tylko, gdy faktycznie wybierzemy inny węzeł.
     const foundNode = nodes.find(node => String(node?.node_id) === String(selectedNode));
     const wsUrl = foundNode ? foundNode.url.replace(/^http/, 'ws') + "/ws/client" : null;
+
 
     useEffect(() => {
         // Czyszczenie starego połączenia
@@ -25,6 +27,7 @@ export const useNodeWebSocket = (selectedNode, nodes, onSuccess) => {
             return;
         }
 
+        api.get("/auth/me");
         setWsStatus("CONNECTING");
         const socket = new WebSocket(wsUrl);
 

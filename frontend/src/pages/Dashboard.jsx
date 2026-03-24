@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNodes } from "../context/NodesContext.jsx";
 import { useNodeWebSocket } from "../hooks/useNodeWebSocket.js"; // Dostosuj ścieżkę importu!
+import api from "../api.js";
 
 export const DashboardPage = () => {
     const { nodes, nodesInfo } = useNodes();
@@ -9,6 +10,7 @@ export const DashboardPage = () => {
     const [selectedNode, setSelectedNode] = useState("");
     const [data, setData] = useState("");
     const [deleteId, setDeleteId] = useState("");
+    const [refreshKey, setRefreshKey] = useState(0);
 
 
     const {
@@ -18,7 +20,7 @@ export const DashboardPage = () => {
         sendDataToNode,
         deleteDataToNode,
         clearMessage
-    } = useNodeWebSocket(selectedNode, nodes, setData);
+    } = useNodeWebSocket(selectedNode, nodes, setData,refreshKey);
 
     const handleSendData = () => {
         sendDataToNode(data);
@@ -28,6 +30,27 @@ export const DashboardPage = () => {
         deleteDataToNode(deleteId);
         setDeleteId("");
     };
+
+    const refreshToken = () =>{
+        const tmp = selectedNode;
+        setRefreshKey(prev=>prev+1);
+        clearMessage();
+        setSelectedNode("");
+        setData("");
+        setDeleteId("");
+
+        setTimeout(() => {
+        setSelectedNode(tmp);
+    }, 2);
+    };
+
+    const disconnect = () =>{
+        setSelectedNode("");
+        setData("");
+        setDeleteId("");
+
+        clearMessage();
+    }
 
     const getStatusColor = () => {
         if (wsStatus === "CONNECTED") return "#24a159";
@@ -42,12 +65,12 @@ export const DashboardPage = () => {
             </p>
 
             {numberOfNodes > 0 && (
-                <div className="node-card" style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
+                <div className="node-card" style={{ display: "flex", gap: "25px", alignItems: "flex-start" }}>
 
                     {/* LEWA KOLUMNA: WYBÓR WĘZŁA */}
-                    <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                            <p style={{ margin: 0 }}><strong>Wybierz węzeł</strong></p>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "2px" }}>
+                            <p style={{ marginBottom: "5px" }}><strong>Wybierz węzeł</strong></p>
                             {selectedNode && (
                                 <span style={{ fontSize: "0.8rem", fontWeight: "600", color: getStatusColor() }}>
                                     ● {wsStatus}
@@ -57,17 +80,22 @@ export const DashboardPage = () => {
                         <select
                             value={selectedNode}
                             onChange={(e) => setSelectedNode(e.target.value)}
-                            className="node-select" // Dodaj klasę lub style jak wcześniej
+                            className="custom-select"
                         >
                             <option value="" disabled>-- Wybierz z listy --</option>
                             {nodes.map((node) => (
                                 <option key={node?.node_id} value={node?.node_id}>Węzeł #{node?.node_id}</option>
                             ))}
                         </select>
+                        {isError?(
+                            <button onClick={refreshToken} style={{ marginTop: '10px', backgroundColor: '#24a159' }}>Odśwież</button>
+                        ):(
+                            ((wsStatus === "CONNECTED")&&<button onClick={disconnect} style={{ marginTop: '10px', backgroundColor: '#24a159' }}>Rozłącz</button>)
+                        )}
                     </div>
 
                     {/* ŚRODKOWA KOLUMNA: DODAWANIE */}
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderLeft: "1px solid #eee", paddingLeft: "20px" }}>
                         <p style={{ marginBottom: "10px" }}><strong>Dodaj dane</strong></p>
                         <input
                             type="text"

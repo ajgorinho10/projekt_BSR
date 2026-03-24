@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlmodel import SQLModel, Field, Column, DateTime
+from sqlmodel import SQLModel, Field
 
 
 class DataBase(SQLModel):
