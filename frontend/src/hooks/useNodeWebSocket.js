@@ -43,7 +43,7 @@ export const useNodeWebSocket = (selectedNode, nodes, onSuccess,refreshKey) => {
             } else {
                 setIsError(false);
                 setMessage(response.message || "Lider pomyślnie zapisał dane!");
-                console.log("odpowiedz:",response);
+                //console.log("odpowiedz:",response);
                 if(response?.data){
 
                     if(response?.data_type === "new"){

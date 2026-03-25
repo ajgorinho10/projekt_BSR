@@ -14,11 +14,17 @@ from database import Data
 
 
 def start_election():
+    print("state.STATUS",state.STATUS,"ELECTION_IN_PROGRESS",state.ELECTION_IN_PROGRESS,"LAST_HEARDBEAT",time.time() - state.LAST_HEARTBEAT)
+    if time.time() - state.LAST_HEARTBEAT > 15:
+        state.ELECTION_IN_PROGRESS = False
+
     if state.STATUS != config.TYPE_STATUS_ACTIVE or state.ELECTION_IN_PROGRESS:
         return
     print(f"\n[Węzeł {config.NODE_ID}] Rozpoczynam elekcję!")
-    if len(state.ELECTION_MSGS) != 0:
-        for node in state.ELECTION_MSGS:
+
+    node_list = state.ELECTION_MSGS.copy()
+    if len(node_list) != 0:
+        for node in node_list:
             send_message(config.TYPE_MSG_ELECTION, node)
     else:
         send_message(config.TYPE_MSG_ELECTION)
@@ -31,7 +37,7 @@ def heartbeat_worker():
     while True:
         time.sleep(2)
         if state.STATUS != config.TYPE_STATUS_ACTIVE: continue
-        if len(state.ELECTION_MSGS) == 0 and state.ELECTION_IN_PROGRESS:
+        if len(state.ELECTION_MSGS.copy()) == 0 and state.ELECTION_IN_PROGRESS:
             state.ELECTION_IN_PROGRESS = False
             state.LEADER_ID = config.NODE_ID
             send_message(config.TYPE_MSG_COORDINATOR)
@@ -39,8 +45,10 @@ def heartbeat_worker():
 
         if state.LEADER_ID == config.NODE_ID:
             send_message(config.TYPE_MSG_HEARTBEAT)
-        elif not state.ELECTION_IN_PROGRESS:
-            if time.time() - state.LAST_HEARTBEAT > 5.0 and time.time() - state.START_UP_TIME > 10:
+            state.LAST_HEARTBEAT = time.time()
+        elif not state.ELECTION_IN_PROGRESS or time.time() - state.LAST_HEARTBEAT > 10:
+            if time.time() - state.LAST_HEARTBEAT > 5:
+                print("brak headbeat")
                 start_election()
 
 
@@ -60,19 +68,28 @@ def rabbitmq_listener():
         if od == config.NODE_ID or (do and do != config.NODE_ID) or state.STATUS != config.TYPE_STATUS_ACTIVE:
             return
 
+        if typ == config.TYPE_MSG_COORDINATOR:
+            print(f"WEZEŁ{config.NODE_ID} od:{od}")
+            if config.NODE_ID < od:
+                state.ELECTION_IN_PROGRESS = False
+                state.LEADER_ID = od
+                state.LAST_HEARTBEAT = time.time()
+            else:
+                start_election()
+
         if config.NODE_ID < od: state.ELECTION_MSGS.add(od)
 
         if typ == config.TYPE_DATA_NEW:
             dane, user = msg.get("data"), msg.get("user")
             task_id, client_id = msg.get("task_id"), msg.get("client_id")
 
-            print(dane,user,client_id,task_id)
+            #print(dane,user,client_id,task_id)
             try:
                 nowe_dane = Data(data=dane,username=user)
                 dane_to_user = add_data_to_db_sync(nowe_dane)
-                print("id: ", dane_to_user)
+                #print("id: ", dane_to_user)
                 if dane_to_user is not False:
-                    print("wysyłam")
+                    #print("wysyłam")
                     new_record_dict = dane_to_user.model_dump()
                     send_message(config.TYPE_DATA_OK, node_id=od, data=new_record_dict, task_id=task_id, client_id=client_id)
                 else:
@@ -85,7 +102,7 @@ def rabbitmq_listener():
             dane, user = msg.get("data"), msg.get("user")
             task_id, client_id = msg.get("task_id"), msg.get("client_id")
 
-            print(dane, user, client_id, task_id)
+            #print(dane, user, client_id, task_id)
             try:
                 data_id = delete_data_from_db_sync(data_id=dane, username=user)
                 if data_id is not False:
@@ -101,7 +118,7 @@ def rabbitmq_listener():
                 ws = state.REACT_CLIENTS[c_id]
                 dane_to_user = msg.get("data")
 
-                print("id od węzła:",dane_to_user)
+                #print("id od węzła:",dane_to_user)
                 type_send = "delete_from_list" if typ == config.TYPE_DATA_OK_DELETE else "add_to_list"
 
                 async def notify():
@@ -119,21 +136,27 @@ def rabbitmq_listener():
 
                 asyncio.run_coroutine_threadsafe(notify(), state.MAIN_LOOP)
 
-        elif typ == config.TYPE_MSG_ELECTION and not state.ELECTION_IN_PROGRESS:
+        elif typ == config.TYPE_MSG_ELECTION:
             state.ELECTION_IN_PROGRESS = True
+            state.ELECTION_MSGS.clear()
+
             if config.NODE_ID > od: send_message(config.TYPE_MSG_OK, od)
 
-        elif typ == config.TYPE_MSG_COORDINATOR:
-            if config.NODE_ID < od:
-                state.ELECTION_IN_PROGRESS = False
-                state.LEADER_ID = od
-                state.LAST_HEARTBEAT = time.time()
+
+        elif typ == config.TYPE_MSG_OK and config.NODE_ID > od:
+            send_message(config.TYPE_MSG_OK, od)
+
 
         elif typ == config.TYPE_MSG_HEARTBEAT:
-            state.LAST_HEARTBEAT = time.time()
-            if config.NODE_ID > od: start_election()
-            else:
+            print(f"WEZEŁ{config.NODE_ID} od:{od} -- HEARTBEAT")
+
+            if config.NODE_ID > od:
+                print("zaczynam ELEKCJE")
+                start_election()
+            elif state.LEADER_ID is None or state.LEADER_ID < od:
                 state.LEADER_ID = od
+
+            state.LAST_HEARTBEAT = time.time()
 
     channel.basic_consume(queue=result.method.queue, on_message_callback=callback, auto_ack=True)
     channel.start_consuming()
