@@ -4,6 +4,7 @@ from jose import JWTError, jwt
 from fastapi import (APIRouter, 
                      HTTPException,
                      Response,
+                     Request,
                      Cookie,
                      Query)
 from fastapi.params import Depends
@@ -31,13 +32,21 @@ from .auth_utils import (create_access_token,
 
 from .dependencies_user import get_current_user,require_admin
 
+from .limiter import limiter
+
 router = APIRouter(
     prefix="/auth",
     tags=["auth"],
 )
 
 @router.post("/login")
-async def login(user_input: UserLogin, response: Response,session: AsyncSession = Depends(get_async_session)):
+@limiter.limit("10/minute")
+async def login(
+    request: Request, 
+    user_input: UserLogin, 
+    response: Response,
+    session: AsyncSession = Depends(get_async_session)
+):
     statement = select(User).where(User.username == user_input.username)
     result = await session.execute(statement)
     user = result.scalars().first()
@@ -116,9 +125,14 @@ async def register_user(user_data: UserCreate, session: AsyncSession = Depends(g
 
     return new_user
 
-
 @router.post("/verify-2fa")
-async def verify_2fa(data: Verify2FA, session: AsyncSession = Depends(get_async_session)):
+@limiter.limit("5/minute")
+async def verify_2fa(
+    request: Request,
+    response: Response,
+    data: Verify2FA, 
+    session: AsyncSession = Depends(get_async_session)
+):
 
     try:
         payload = jwt.decode(data.preauth_token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -146,9 +160,17 @@ async def verify_2fa(data: Verify2FA, session: AsyncSession = Depends(get_async_
 
     access_token = create_access_token(data={"sub": user.username, "role": user.role})
     refresh_token = create_refresh_token(data={"sub": user.username})
+    
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=False, #False TYLKO podczas testów
+        samesite="lax", 
+        max_age=7 * 24 * 60 * 60 #7 dni
+    )
     return {
         "access_token": access_token,
-        "refresh_token": refresh_token,  # Zwracamy nowy token!
         "token_type": "bearer"
     }
 

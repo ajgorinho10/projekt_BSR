@@ -2,6 +2,7 @@ import asyncio
 import os
 import subprocess
 import sys
+import platform
 
 import psutil
 import requests
@@ -111,15 +112,29 @@ async def create_node(node_id: int,user:User = Depends(require_admin)):
     env["NODE_ID"] = str(node_id)
 
     parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__),"../"))
-    print(f"parent_dir: {parent_dir}")
     try:
-        print(os.getcwd())
-        process = subprocess.Popen(
-            ["cmd.exe", "/k", sys.executable, "-m","uvicorn", "nodes.node_process:app", "--port", str(port)],
-            env=env,
-            creationflags=subprocess.CREATE_NEW_CONSOLE,
-            cwd=parent_dir,
-        )
+        command = [sys.executable, "-m", "uvicorn", "nodes.node_process:app", "--port", str(port)]
+        
+        if platform.system() == "Windows":
+            process = subprocess.Popen(
+                ["cmd.exe", "/k"] + command,
+                env=env,
+                creationflags=subprocess.CREATE_NEW_CONSOLE,
+                cwd=parent_dir,
+            )
+        else:
+            process = subprocess.Popen(
+                command,
+                env=env,
+                cwd=parent_dir,
+                start_new_session=True # Oddziela proces potomny od procesu głównego w systemach Unix
+            )
+
+        node_data = {
+            "port": port,
+            "pid": process.pid,
+            "url": f"http://127.0.0.1:{port}"
+        }
 
         node_data = {
             "port": port,
@@ -144,13 +159,21 @@ async def delete_node(node_id: int,user:User = Depends(require_admin)):
     pid = node.get("pid")
     if pid and psutil.pid_exists(pid):
         try:
-            subprocess.run(['taskkill', '/F', '/T', '/PID', str(pid)], capture_output=True)
+            parent = psutil.Process(pid)
+            # Zabijanie procesów potomnych (odpowiednik /T w Windows)
+            for child in parent.children(recursive=True):
+                child.kill()
+            # Zabicie procesu głównego
+            parent.kill()
+            
             await state.remove_nodes_db(node_id)
             await state.remove_nodes_details_db(node_id)
 
             return {"message": f"Węzeł {node_id} zlikwidowany!"}
+        except psutil.NoSuchProcess:
+            pass # Proces zdążył się zakończyć przed próbą zabicia
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Błąd: {str(e)}")
-    else:
-        await state.remove_nodes_db(node_id)
-        return {"message": "Węzeł był już wyłączony."}
+            
+    await state.remove_nodes_db(node_id)
+    return {"message": "Węzeł był już wyłączony."}

@@ -12,3 +12,4 @@ fastapi
 pyotp
 pika
 starlette
+slowapi

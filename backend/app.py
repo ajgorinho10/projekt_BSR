@@ -13,6 +13,11 @@ from auth import router_user
 from websockets_nodes import router_ws_nodes
 from nodes.node_process import *
 
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from auth.limiter import limiter
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -23,6 +28,10 @@ async def lifespan(app: FastAPI):
 sys.path.append("")
 
 app = FastAPI(title="Bully Cluster",lifespan=lifespan)
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 origins = [
     "http://localhost:5173",

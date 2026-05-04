@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import api from "../api.js";
+import {api, getAccessToken} from "../api.js";
 
-export const useNodeWebSocket = (selectedNode, nodes, onSuccess,refreshKey) => {
+export const useNodeWebSocket = (selectedNode, nodes, onSuccess, refreshKey) => {
     const [wsStatus, setWsStatus] = useState("DISCONNECTED");
     const [message, setMessage] = useState("");
     const [isError, setIsError] = useState(false);
@@ -110,7 +110,7 @@ export const useNodeWebSocket = (selectedNode, nodes, onSuccess,refreshKey) => {
         }
 
         const taskId = "task_" + Date.now();
-        const token = localStorage.getItem("access_token");
+        const token = getAccessToken()
 
         const payload = {
             action: "save_data",
@@ -148,7 +148,7 @@ export const useNodeWebSocket = (selectedNode, nodes, onSuccess,refreshKey) => {
         }
 
         const taskId = "task_del_" + Date.now();
-        const token = localStorage.getItem("access_token");
+        const token = getAccessToken();
 
         const payload = {
             action: "delete_data",
@@ -180,7 +180,7 @@ export const useNodeWebSocket = (selectedNode, nodes, onSuccess,refreshKey) => {
         }
 
         const taskId = "task_get_" + Date.now();
-        const token = localStorage.getItem("access_token");
+        const token = getAccessToken();
 
         const payload = {
             action: "get_data",

@@ -32,7 +32,12 @@ export const Login = () => {
                 await login(response.data.access_token);
                 navigate('/dashboard');
             }
-        } catch (err) {
+        } catch (err) {    
+            if(err.response?.status === 429){
+                setError("Zbyt dużo błędnych prób logowania zaczekaj 1 minutę");
+                return;
+            }
+
             const message = err.response?.data?.detail || 'Błędny login lub hasło.';
             setError(message);
         }
@@ -51,6 +56,10 @@ export const Login = () => {
             await login(response.data.access_token, response.data.refresh_token);
             navigate('/dashboard');
         } catch (err) {
+            if(err.response?.status === 429){
+                setError("Zbyt dużo błędnych prób zaczekaj 1 minutę");
+                return;
+            }
             setError('Nieprawidłowy kod 2FA.');
         }
     };

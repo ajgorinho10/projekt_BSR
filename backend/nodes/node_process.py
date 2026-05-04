@@ -39,19 +39,29 @@ async def startup_event():
 async def connect_to_api():
     uri = f"ws://127.0.0.1:8000/ws/nodes?api_key={config.NODES_KEY}"
     while True:
+        last_send = None
         try:
             async with websockets.connect(uri) as ws:
                 print("Connected -> API")
-                last_send = None
                 while True:
                     data = {"leader_id": state.LEADER_ID, "node_id": config.NODE_ID, "status": state.STATUS}
                     if data != last_send:
                         await ws.send(
                             json.dumps({"leader_id": state.LEADER_ID, "node_id": config.NODE_ID, "status": state.STATUS}))
                         last_send = data
-                    await asyncio.sleep(2)
+                        
+                    closed_task = asyncio.create_task(ws.wait_closed())
+                    done, pending = await asyncio.wait(
+                        [closed_task],
+                        timeout=2
+                    )
+                    if closed_task in done:
+                        raise Exception("Połączenie WebSocket zostało przerwane przez serwer.")
+                    
+                    
         except Exception as e:
             print(e)
+            last_send = None
             await asyncio.sleep(5)
 
 
@@ -64,6 +74,8 @@ async def websocket_client_endpoint(websocket: WebSocket):
         return
 
     await websocket.accept()
+    last_send_token = None
+    username = None
 
     c_id = str(uuid.uuid4())
     state.REACT_CLIENTS[c_id] = websocket
@@ -74,13 +86,16 @@ async def websocket_client_endpoint(websocket: WebSocket):
             task_id = payload.get("task_id", str(uuid.uuid4()))
             action = payload.get("action")
 
-            res = requests.post(f"{config.API_ADDRESS}/nodes/verify-user?token={token}&api_key={config.NODES_KEY}")
-            if res.status_code != 200:
-                #print(res.status_code)
-                await websocket.send_json({"error": "Auth failed"})
-                continue
+            if last_send_token != token:
+                res = requests.post(f"{config.API_ADDRESS}/nodes/verify-user?token={token}&api_key={config.NODES_KEY}")
+                if res.status_code != 200:
+                    #print(res.status_code)
+                    await websocket.send_json({"error": "Auth failed"})
+                    continue
+                else:
+                    last_send_token = token
+                    username = res.json().get("username", "Unknown")
 
-            username = res.json().get("username", "Unknown")
             #print(dane, username, task_id)
             if action == "get_data":
                 await get_read_data(websocket, dane, username,task_id)
