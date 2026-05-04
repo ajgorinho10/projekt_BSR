@@ -1,7 +1,11 @@
 import pyotp
 from jose import JWTError, jwt
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import (APIRouter, 
+                     HTTPException,
+                     Response,
+                     Cookie,
+                     Query)
 from fastapi.params import Depends
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -33,7 +37,7 @@ router = APIRouter(
 )
 
 @router.post("/login")
-async def login(user_input: UserLogin, session: AsyncSession = Depends(get_async_session)):
+async def login(user_input: UserLogin, response: Response,session: AsyncSession = Depends(get_async_session)):
     statement = select(User).where(User.username == user_input.username)
     result = await session.execute(statement)
     user = result.scalars().first()
@@ -52,16 +56,43 @@ async def login(user_input: UserLogin, session: AsyncSession = Depends(get_async
 
     access_token = create_access_token(data={"sub": user.username, "role": user.role})
     refresh_token = create_refresh_token(data={"sub": user.username})
+    
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=False, #False TYLKO podczas testów
+        samesite="lax", 
+        max_age=7 * 24 * 60 * 60 #7 dni
+    )
+    
     return {
         "access_token": access_token,
-        "refresh_token": refresh_token,  # Zwracamy nowy token!
         "token_type": "bearer"
     }
 
 
 @router.post("/logout")
-async def logout_user():
-    return {"message": "Hello World"}
+async def logout_user(
+    response: Response,
+    refresh_token: str = Cookie(None),
+    session: AsyncSession = Depends(get_async_session)
+):
+    statement = select(BlacklistedToken).where(BlacklistedToken.token == refresh_token)
+    result = await session.execute(statement)
+    print(result)
+    if result.scalars().first() is None:
+        blacklisted = BlacklistedToken(token=refresh_token)
+        session.add(blacklisted)
+        await session.commit()
+    
+    response.delete_cookie(
+        key="refresh_token",
+        httponly=True,
+        secure=False,
+        samesite="lax"
+    )
+    return {"message": "Wylogowano pomyślnie."}
 
 
 @router.post("/register", response_model=UserRead)
@@ -166,18 +197,22 @@ async def confirm_2fa(data: Confirm2FA, current_user: User = Depends(get_current
 
 @router.post("/refresh")
 async def refresh_token(
-        data: TokenRefreshRequest,
+        response: Response,
+        refresh_token: str = Cookie(None),
         session: AsyncSession = Depends(get_async_session)):  # Usunięto Depends(get_current_user)!
+    
+    if not refresh_token:
+         raise HTTPException(status_code=401, detail="Brak tokena odświeżającego.")
 
     # 1. Sprawdzamy, czy stary token nie został już użyty (Czarna Lista)
-    statement = select(BlacklistedToken).where(BlacklistedToken.token == data.refresh_token)
+    statement = select(BlacklistedToken).where(BlacklistedToken.token == refresh_token)
     result = await session.execute(statement)
     if result.scalars().first():
         raise HTTPException(status_code=401, detail="Ten token został już wykorzystany.")
 
     # 2. Dekodowanie i weryfikacja JWT
     try:
-        payload = jwt.decode(data.refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
         if payload.get("type") != "refresh":
             raise HTTPException(status_code=401, detail="Nieprawidłowy typ tokena")
 
@@ -195,19 +230,10 @@ async def refresh_token(
     if not user:
         raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
 
-    # 4. SPALENIE STAREGO TOKENA (Zapis do bazy)
-    blacklisted = BlacklistedToken(token=data.refresh_token)
-    session.add(blacklisted)
-
-    # 5. Generowanie NOWYCH tokenów (PAMIĘTAJ O DODANIU ROLI!)
+    # 4. Generowanie NOWYCH tokenów (PAMIĘTAJ O DODANIU ROLI!)
     new_access_token = create_access_token(data={"sub": user.username, "role": user.role})
-    new_refresh_token = create_refresh_token(data={"sub": user.username})
-
-    await session.commit()
-
     return {
         "access_token": new_access_token,
-        "refresh_token": new_refresh_token,
         "token_type": "bearer"
     }
 

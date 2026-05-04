@@ -57,7 +57,7 @@ async def connect_to_api():
 
 @app.websocket("/ws/client")
 async def websocket_client_endpoint(websocket: WebSocket):
-    print("XD", state.STATUS, config.TYPE_STATUS_INACTIVE, state.LEADER_ID)
+    #print("XD", state.STATUS, config.TYPE_STATUS_INACTIVE, state.LEADER_ID)
 
     if state.STATUS == config.TYPE_STATUS_INACTIVE or state.ELECTION_IN_PROGRESS or state.LEADER_ID is None:
         await websocket.close(code=status.WS_1013_TRY_AGAIN_LATER)

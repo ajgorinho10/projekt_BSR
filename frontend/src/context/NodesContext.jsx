@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext,useRef } from 'react';
 import { parsePath } from 'react-router-dom';
-import api from '../api';
+import {api, getAccessToken} from '../api';
 
 const NodesContext = createContext(null);
 
@@ -16,7 +16,7 @@ export const NodesProvider = ({ children }) => {
         let isMounted = true;
 
         const connectWebSocket = () => {
-            const token = localStorage.getItem('access_token');
+            const token = getAccessToken();
             
             if (!token) {
                 console.warn("Brak tokena, wstrzymuję połączenie WebSocket.");

@@ -29,7 +29,7 @@ export const Login = () => {
                 setTempToken(response.data.preauth_token);
                 setStep(2);
             } else {
-                await login(response.data.access_token, response.data.refresh_token);
+                await login(response.data.access_token);
                 navigate('/dashboard');
             }
         } catch (err) {

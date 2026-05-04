@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import api from '../api';
+import {api, getAccessToken, setAccessToken, setLogout, GetisLogout} from '../api';
 
 
 const AuthContext = createContext(null);
@@ -11,8 +11,9 @@ export const AuthProvider = ({ children }) => {
 
 
     const checkAuthStatus = async () => {
-        const token = localStorage.getItem('access_token');
-        if (!token) {
+        const islogout = await GetisLogout()
+        console.log("Jest wylogowany:",islogout)
+        if(islogout){
             setUser(null);
             setIsLoading(false);
             return;
@@ -34,20 +35,19 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
 
-    const login = async (accessToken, refreshToken) => {
-        localStorage.setItem('access_token', accessToken);
-        localStorage.setItem('refresh_token', refreshToken);
+    const login = async (accessToken) => {
+        setAccessToken(accessToken);
+        setLogout(false);
         await checkAuthStatus();
     };
 
-    // Funkcja wylogowania
-    const logout = () => {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
+    const logout = async () => {
+        const response = await api.post('/auth/logout');
+        setLogout(true);
+        setAccessToken(null);
         setUser(null);
-        
-        // Opcjonalnie: można tu wywołać api.post('/auth/logout'), aby zablokować token w backendzie
-        window.location.href = '/login'; // Przekierowanie
+
+        window.location.href = '/login';
     };
 
     // To, co udostępniamy reszcie aplikacji
