@@ -14,13 +14,21 @@ export const Register = () => {
         setMsg('');
         
         try {
-            await api.post('/auth/register', formData);
+            const response = await api.post('/auth/register', formData);
             setIsSuccess(true);
             setMsg('Zarejestrowano pomyślnie! Zaraz zostaniesz przekierowany...');
             setTimeout(() => navigate('/login'), 2000);
         } catch (err) {
             setIsSuccess(false);
-            setMsg(err.response?.data?.detail || 'Błąd rejestracji');
+            const newMsgUsername = (err.response?.data?.detail[0]?.loc[1] +" : "+ err.response?.data?.detail[0]?.msg) || ""
+            
+            if(err.response?.data?.detail[1] !== undefined){
+                const newMsgPassword = (err.response?.data?.detail[1]?.loc[1] +" : "+ err.response?.data?.detail[1]?.msg) || ""
+                setMsg((newMsgUsername + "\n" + newMsgPassword) || 'Błąd rejestracji');
+                return
+            }
+
+            setMsg((newMsgUsername + "\n") || 'Błąd rejestracji');
         }
     };
 

@@ -13,6 +13,7 @@ async def get_current_user(
         token: str = Depends(oauth2_scheme),
         session: AsyncSession = Depends(get_async_session)
 ):
+    """ Zwraca aktualnego użytkownika"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Nie można zweryfikować danych uwierzytelniających",
@@ -36,7 +37,7 @@ async def get_current_user(
 
     return user
 
-
+""" Klasa sprawdzająca jakiej roli jest użytkownik"""
 class RoleChecker:
     def __init__(self, allowed_roles: List[str]):
         self.allowed_roles = allowed_roles

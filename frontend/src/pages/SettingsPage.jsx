@@ -29,19 +29,19 @@ export const SettingsPage = () => {
         }
         setMessage('');
         try {
-            await updateUserPassword(newPass);
+            const response = await updateUserPassword(newPass);
             setNewPass("");
             await checkAuthStatus();
             setIsError(false);
             setMessage("Hasło zostało pomyślnie zmienione!");
         } catch (error) {
             setIsError(true);
-            setMessage(error.response?.data?.detail || "Błąd podczas zmiany hasła.");
+            setMessage(error.response?.data?.detail[0]?.msg || "Błąd podczas zmiany hasła.");
         }
     };
 
     const loginChange = async () => {
-        if (!newPass) {
+        if (!newLogin) {
             setIsError(true);
             setMessage("Wartość pola nie może być pusta");
             return;
@@ -59,7 +59,7 @@ export const SettingsPage = () => {
         } catch (error) {
             // TUTAJ ŁAPIEMY BŁĄD Z FASTAPI (np. "Nazwa użytkownika jest zajęta !")
             setIsError(true);
-            setMessage(error.response?.data?.detail || "Wystąpił błąd podczas zmiany loginu.");
+            setMessage(error.response?.data?.detail[0]?.msg || "Wystąpił błąd podczas zmiany loginu.");
         }
     };
 

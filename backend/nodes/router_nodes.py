@@ -29,6 +29,7 @@ async def check_user(
     token: str,
     api_key: str
 ):
+    """Umożliwa wątkom weryfikację użytkownika"""
     if api_key != NODES_KEY:
         raise HTTPException(status_code=401, detail="Błędy Klucz API!")
 
@@ -47,6 +48,7 @@ async def getALLNodes(user: User = Depends(get_current_user)):
 
 @router.get("/{node_id}")
 async def getNodeInfo(node_id: int,user: User = Depends(get_current_user)):
+    """Zwraca informacje o wybranym wątku"""
     node = await state.get_node(node_id)
     if node is None:
         raise HTTPException(status_code=400, detail=f"Węzeł {node_id} nie istnieje!")
@@ -64,7 +66,7 @@ async def getNodeInfo(node_id: int,user: User = Depends(get_current_user)):
 
 @router.post("/deactivate/{node_id}")
 async def deactivateNode(node_id: int,user:User = Depends(require_admin)):
-    """Uprawnienia TYLKO super User"""
+    """Tylko ADMIN - Wyłącza wątek"""
     node = await state.get_node(node_id)
     if node is None:
         raise HTTPException(status_code=400, detail=f"Węzeł {node_id} nie istnieje!")
@@ -81,7 +83,7 @@ async def deactivateNode(node_id: int,user:User = Depends(require_admin)):
 
 @router.post("/activate/{node_id}")
 async def deactivateNode(node_id: int,user:User = Depends(require_admin)):
-
+    """Tylko ADMIN - Włącza wątek"""
     node = await state.get_node(node_id)
     if node is None:
         raise HTTPException(status_code=400, detail=f"Węzeł {node_id} nie istnieje!")
@@ -99,11 +101,10 @@ async def deactivateNode(node_id: int,user:User = Depends(require_admin)):
 
 @router.post("/{node_id}")
 async def create_node(node_id: int,user:User = Depends(require_admin)):
-    """Uruchamia nowy węzeł"""
+    """Tylko ADMIN - Uruchamia nowy węzeł"""
     node = await state.get_node(node_id)
     if node is not None:
         pid = node.get("pid")
-        # Pytamy system operacyjny, czy proces o tym numerze PID nadal działa
         if pid and psutil.pid_exists(pid):
             raise HTTPException(status_code=400, detail=f"Węzeł {node_id} już działa!")
 
@@ -127,7 +128,7 @@ async def create_node(node_id: int,user:User = Depends(require_admin)):
                 command,
                 env=env,
                 cwd=parent_dir,
-                start_new_session=True # Oddziela proces potomny od procesu głównego w systemach Unix
+                start_new_session=True
             )
 
         node_data = {
@@ -160,10 +161,8 @@ async def delete_node(node_id: int,user:User = Depends(require_admin)):
     if pid and psutil.pid_exists(pid):
         try:
             parent = psutil.Process(pid)
-            # Zabijanie procesów potomnych (odpowiednik /T w Windows)
             for child in parent.children(recursive=True):
                 child.kill()
-            # Zabicie procesu głównego
             parent.kill()
             
             await state.remove_nodes_db(node_id)
@@ -171,7 +170,7 @@ async def delete_node(node_id: int,user:User = Depends(require_admin)):
 
             return {"message": f"Węzeł {node_id} zlikwidowany!"}
         except psutil.NoSuchProcess:
-            pass # Proces zdążył się zakończyć przed próbą zabicia
+            pass
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Błąd: {str(e)}")
             

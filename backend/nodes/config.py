@@ -1,5 +1,6 @@
 import os
 
+#Klucze do komunikacji między wątkami
 API_ADDRESS = os.getenv("API_ADDRESS", "http://127.0.0.1:8000")
 NODES_KEY = os.getenv("NODES_KEY", "KLUCZ_DO_WEZLOW!")
 NODE_ID = int(os.getenv("NODE_ID", 1))

@@ -14,6 +14,7 @@ from database import Data
 
 
 def start_election():
+    """ Obsługuje start elekcji lidera"""
     print("state.STATUS",state.STATUS,"ELECTION_IN_PROGRESS",state.ELECTION_IN_PROGRESS,"LAST_HEARDBEAT",time.time() - state.LAST_HEARTBEAT)
     if time.time() - state.LAST_HEARTBEAT > 15:
         state.ELECTION_IN_PROGRESS = False
@@ -34,6 +35,7 @@ def start_election():
 
 
 def heartbeat_worker():
+    """Metoda wykonywana przez lider do wysyłania komunikatu HEARTBEAT - informuje on, że lider jest aktywny"""
     while True:
         time.sleep(2)
         if state.STATUS != config.TYPE_STATUS_ACTIVE: continue
@@ -53,6 +55,7 @@ def heartbeat_worker():
 
 
 def rabbitmq_listener():
+    """Nasłuchuje komunikatów od brokera wiadomośći- RabbitMQ"""
     connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
     channel = connection.channel()
     channel.exchange_declare(exchange='bully_cluster', exchange_type='fanout')

@@ -2,12 +2,11 @@ import pika
 import json
 
 
-#from .config import NODE_ID
 from nodes import config
-#from .state import STATUS
 from nodes import state
 
 def send_message(typ, node_id=None, data=None, user=None, task_id=None, client_id=None):
+    """Wysyła wiadomość do innego wątku za pomocą RabbitMQ"""
     if state.STATUS != "ACTIVE":
         return
     try:

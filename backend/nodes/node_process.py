@@ -18,6 +18,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 
 
 class KEYRestrictMiddleware(BaseHTTPMiddleware):
+    """Middleware sprawdzający czy zapytanie posiada klucz dostępowy - """
     async def dispatch(self, request: Request, call_next):
         if request.headers.get("nodes-key") != config.NODES_KEY and request.url.path not in ["/data"]:
             return JSONResponse(status_code=403, content={"detail": "Zabroniony"})
@@ -29,6 +30,7 @@ app.add_middleware(KEYRestrictMiddleware)
 
 @app.on_event("startup")
 async def startup_event():
+    """Uruchamia wątki odpowiedzialne ze komunikację procesu"""
     state.MAIN_LOOP = asyncio.get_running_loop()
     await init_db_node()
     threading.Thread(target=rabbitmq_listener, daemon=True).start()
@@ -37,6 +39,7 @@ async def startup_event():
 
 
 async def connect_to_api():
+    """Łączy proces z główyn serwer zarządzającym"""
     uri = f"ws://127.0.0.1:8000/ws/nodes?api_key={config.NODES_KEY}"
     while True:
         last_send = None
@@ -67,7 +70,7 @@ async def connect_to_api():
 
 @app.websocket("/ws/client")
 async def websocket_client_endpoint(websocket: WebSocket):
-    #print("XD", state.STATUS, config.TYPE_STATUS_INACTIVE, state.LEADER_ID)
+    """Socket do komunikacji z użytkownikiem"""
 
     if state.STATUS == config.TYPE_STATUS_INACTIVE or state.ELECTION_IN_PROGRESS or state.LEADER_ID is None:
         await websocket.close(code=status.WS_1013_TRY_AGAIN_LATER)
@@ -123,21 +126,26 @@ async def websocket_client_endpoint(websocket: WebSocket):
 
 # Endpointy statusu zostają tutaj...
 @app.get("/status")
-def get_status(): return {"node_id": config.NODE_ID, "status": state.STATUS, "leader_id": state.LEADER_ID}
+def get_status():
+    """Zwraca status wątku"""
+    return {"node_id": config.NODE_ID, "status": state.STATUS, "leader_id": state.LEADER_ID}
 
 @app.post("/deactivate")
 def deactivate_node():
+    """Deaktywuje wątek"""
     state.LEADER_ID = None
     state.STATUS = config.TYPE_STATUS_INACTIVE
     return {"message":"Węzeł zatrzymany"}
 
 @app.post("/activate")
 def deactivate_node():
+    """Aktywuje wątek"""
     state.STATUS = config.TYPE_STATUS_ACTIVE
     return {"message":"Węzeł zatrzymany"}
 
 
 async def delete_by_leader(websocket,dane,username,task_id):
+    """Usuwa rekord z bazy jako lider - odsyła informacje o statusie operacji do wątku zlecającego"""
     try:
         if await delete_data_from_db_async(dane,username):
             await websocket.send_json({"task_id": task_id, "status": "success", "message": "Usunięto (Lider)","data":dane,"data_type":"delete_from_list"})
@@ -147,6 +155,7 @@ async def delete_by_leader(websocket,dane,username,task_id):
         await websocket.send_json({"task_id": task_id, "status": "error", "message": "Błąd podczas usuwania (Lider)"})
 
 async def add_by_leader(websocket,dane,username,task_id):
+    """"Dodaje rekord z bazy jako lider - odsyła informacje o statusie operacji do wątku zlecającego"""
     try:
         data_from_db = await add_data_to_db_async(Data(data=dane, username=username))
         if data_from_db:
@@ -160,6 +169,7 @@ async def add_by_leader(websocket,dane,username,task_id):
         await websocket.send_json({"task_id": task_id, "status": "error", "message": "Błąd podczas zapisywania (Lider)"})
 
 async def get_read_data(websocket,dane,username,task_id):
+    """Odczytuje wszystkie rekordy użytkownika z bazy"""
     try:
         data = await get_read_data_async(username)
         data_to_send = [item.model_dump() for item in data]

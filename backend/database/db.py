@@ -1,3 +1,5 @@
+"""Baza danych przechowująca dane o użytkownikach"""
+
 import os
 from dotenv import load_dotenv
 

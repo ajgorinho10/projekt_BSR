@@ -38,8 +38,15 @@ export const Login = () => {
                 return;
             }
 
-            const message = err.response?.data?.detail || 'Błędny login lub hasło.';
-            setError(message);
+            const newMsgUsername = (err.response?.data?.detail[0]?.loc[1] +" : "+ err.response?.data?.detail[0]?.msg) || ""
+            
+            if(err.response?.data?.detail[1] !== undefined){
+                const newMsgPassword = (err.response?.data?.detail[1]?.loc[1] +" : "+ err.response?.data?.detail[1]?.msg) || ""
+                setError((newMsgUsername + "\n" + newMsgPassword) || 'Błąd rejestracji');
+                return
+            }
+
+            setError((newMsgUsername + "\n") || 'Błąd rejestracji');
         }
     };
 

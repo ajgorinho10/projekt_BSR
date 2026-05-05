@@ -47,6 +47,11 @@ async def login(
     response: Response,
     session: AsyncSession = Depends(get_async_session)
 ):
+    """EndPoint: Logowanie użytkowników
+    
+        Jeśli włączone jest Totp zwracany jest "preauth_token" potwierdzający prawidłowe dane logowania.
+        Przeciwnie tokeny dostępu oraz odświerzenia
+    """
     statement = select(User).where(User.username == user_input.username)
     result = await session.execute(statement)
     user = result.scalars().first()
@@ -55,11 +60,10 @@ async def login(
         raise HTTPException(status_code=401, detail="Niepoprawny login lub hasło")
 
     if user.totp_enabled:
-        # TWORZYMY TYMCZASOWY TOKEN
         preauth_token = create_preauth_token(user.id)
         return {
             "step": "2fa_required",
-            "preauth_token": preauth_token, # Wysyłamy go klientowi
+            "preauth_token": preauth_token,
             "message": "Podaj kod z aplikacji uwierzytelniającej"
         }
 
@@ -87,6 +91,10 @@ async def logout_user(
     refresh_token: str = Cookie(None),
     session: AsyncSession = Depends(get_async_session)
 ):
+    """EndPoint: Wylogowanie użytkowników
+    
+        Dodaje aktualny refresh_token na listę zablokowanych i usuwa ciasteczko
+    """
     statement = select(BlacklistedToken).where(BlacklistedToken.token == refresh_token)
     result = await session.execute(statement)
     print(result)
@@ -106,7 +114,7 @@ async def logout_user(
 
 @router.post("/register", response_model=UserRead)
 async def register_user(user_data: UserCreate, session: AsyncSession = Depends(get_async_session)):
-    # 1. Haszowanie hasła
+    """EndPoint: Rejestracja użytkowników"""
     hashed_pwd = get_password_hash(user_data.password)
 
     new_user = User(
@@ -133,7 +141,10 @@ async def verify_2fa(
     data: Verify2FA, 
     session: AsyncSession = Depends(get_async_session)
 ):
-
+    """EndPoint: Weryfikacja kodu Totp
+    
+        Jeśli kod jest prawidłowy, odsyłamy tokeny dostępu i odświerzenia
+    """
     try:
         payload = jwt.decode(data.preauth_token, SECRET_KEY, algorithms=[ALGORITHM])
 
@@ -176,7 +187,15 @@ async def verify_2fa(
 
 
 @router.post("/setup-2fa")
-async def setup_2fa(current_user: User = Depends(get_current_user), session: AsyncSession = Depends(get_async_session)):
+async def setup_2fa(
+    current_user: User = Depends(get_current_user), 
+    session: AsyncSession = Depends(get_async_session)
+):
+    """EndPoint: Ustawienie Totp dla konta
+    
+        Zwracamy użytkownikowi klucz oraz adres URL.
+    """
+    
     if current_user.totp_enabled:
         raise HTTPException(status_code=400, detail="2FA jest już aktywne na tym koncie.")
 
@@ -196,8 +215,15 @@ async def setup_2fa(current_user: User = Depends(get_current_user), session: Asy
 
 
 @router.post("/confirm-2fa")
-async def confirm_2fa(data: Confirm2FA, current_user: User = Depends(get_current_user),
-                      session: AsyncSession = Depends(get_async_session)):
+async def confirm_2fa(
+    data: Confirm2FA, 
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_async_session)
+):
+    """EndPoint: Weryfikacja Totp
+
+        Sprawdzamy czy kod otrzymany od użytkownika jest prawidłowy.
+    """
     if current_user.totp_enabled:
         raise HTTPException(status_code=400, detail="2FA jest już włączone.")
 
@@ -221,7 +247,12 @@ async def confirm_2fa(data: Confirm2FA, current_user: User = Depends(get_current
 async def refresh_token(
         response: Response,
         refresh_token: str = Cookie(None),
-        session: AsyncSession = Depends(get_async_session)):  # Usunięto Depends(get_current_user)!
+        session: AsyncSession = Depends(get_async_session)
+):
+    """EndPoint: Nowy token dostępu
+    
+        Token odświerzenia się nie zmienia, zwracamy jedynie nowy token dostępowy
+    """
     
     if not refresh_token:
          raise HTTPException(status_code=401, detail="Brak tokena odświeżającego.")
@@ -261,6 +292,7 @@ async def refresh_token(
 
 @router.get("/me")
 async def test(current_user: User = Depends(get_current_user)):
+    """EndPoint: Zwraca dane użytkownika"""
     return current_user
 
 
@@ -270,6 +302,10 @@ async def promote_to_admin(
         role: str = Query(None),
         session: AsyncSession = Depends(get_async_session)
 ):
+    """EndPoint: Zmiana roli użytkownika
+    
+        Jest to endpoint wprowadzony dla testów aplikacji.
+    """
     if role and role == current_user.role and role in ["user","admin"]:
         raise HTTPException(status_code=400, detail="Błędna rola")
 
@@ -288,7 +324,7 @@ async def update_user(
         current_user: User = Depends(get_current_user),
         session: AsyncSession = Depends(get_async_session)
 ):
-    """Aktualizuje username użytkownika"""
+    """EndPoint: Aktualizuje username użytkownika"""
 
     update_dict = update_data.model_dump(exclude_unset=True)
 
@@ -322,7 +358,7 @@ async def update_user_password(
         current_user: User = Depends(get_current_user),
         session: AsyncSession = Depends(get_async_session)
 ):
-    """Aktualizuje hasło użytkownika"""
+    """EndPoint: Aktualizuje hasło użytkownika"""
 
     update_dict = update_data.model_dump(exclude_unset=True)
 
@@ -351,6 +387,7 @@ async def update_user_disable_totp(
         current_user: User = Depends(get_current_user),
         session: AsyncSession = Depends(get_async_session)
 ):
+    """EndPoint: Wyłączenie Totp"""
     if not current_user.totp_enabled:
         raise HTTPException(status_code=400,detail="TOTP 2F nie jest włączone!")
 

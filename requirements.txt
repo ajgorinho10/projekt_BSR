@@ -13,3 +13,8 @@ pyotp
 pika
 starlette
 slowapi
+pdoc
+pytest 
+pytest-cov 
+httpx
+pytest-asyncio

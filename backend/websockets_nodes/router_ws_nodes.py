@@ -19,7 +19,7 @@ router = APIRouter(prefix="/ws", tags=["WebSockets"])
 
 @router.websocket("/nodes")
 async def websocket_nodes(websocket: WebSocket, api_key: str = Query(None)):
-
+    """Socket do komunikacji między serwerem głównym a wątekiem - zabezpieczony kluczem "API_KEY" """
     if api_key != NODES_KEY:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
@@ -50,7 +50,7 @@ async def websocket_nodes(websocket: WebSocket, api_key: str = Query(None)):
 
 @router.websocket("/")
 async def websocket_frontend(websocket: WebSocket,token: str = Query(None)):
-
+    """Socket dla użytkownika - zwraca aktualizację statu wątków"""
     try:
         await websocket.accept()
 
@@ -66,9 +66,6 @@ async def websocket_frontend(websocket: WebSocket,token: str = Query(None)):
 
             nodes = await get_nodes_connections()
             info = await get_nodes_info()
-            #print("dane", nodes)
-            #print("info", info)
-            #print("\n")
             if last_send_nodes != nodes or last_send_info != info:
                 data = {"nodes": nodes,"node_details": info}
                 await websocket.send_json(data)

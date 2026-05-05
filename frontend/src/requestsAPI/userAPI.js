@@ -22,6 +22,7 @@ export const updateUserPassword = async (pass) =>{
         
         return reponse.data;
     }catch(error){
+        console.log(error)
         throw error;
     }
 };
