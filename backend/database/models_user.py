@@ -18,7 +18,7 @@ class UserBase(SQLModel):
         if not re.match(r"^[a-zA-Z0-9_.-]+$", v):
             raise ValueError("Nazwa użytkownika może zawierać tylko litery, cyfry, kropki, myślniki i podkreślniki.")
         
-        if len(v) < 3 or len > 30:
+        if len(v) < 3 or len(v) > 30:
             raise ValueError("Nazwa użytkownika może mieć od 3 do 30 znaków")
         return v
 
