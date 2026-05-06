@@ -3,9 +3,7 @@ import json
 import pika
 import asyncio
 
-#from .config import *
 from nodes import config
-#from .state import *
 from nodes import state
 
 from .messaging import send_message

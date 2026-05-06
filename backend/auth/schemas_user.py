@@ -1,3 +1,5 @@
+"""Schematy dla użytkowników"""
+
 from typing import Optional
 
 from pydantic import BaseModel, Field

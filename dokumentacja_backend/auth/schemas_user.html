@@ -124,55 +124,59 @@
                     <h1 class="modulename">
 <a href="./../auth.html">auth</a><wbr>.schemas_user    </h1>
 
-                
+                        <div class="docstring"><p>Schematy dla użytkowników</p>
+</div>
+
                         <input id="mod-schemas_user-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
                         <label class="view-source-button" for="mod-schemas_user-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="sd">&quot;&quot;&quot;Schematy dla użytkowników&quot;&quot;&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">database</span><span class="w"> </span><span class="kn">import</span> <span class="n">UserBase</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserLogin</span><span class="p">(</span><span class="n">UserBase</span><span class="p">):</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserCreate</span><span class="p">(</span><span class="n">UserBase</span><span class="p">):</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>        <span class="n">min_length</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> 
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>        <span class="n">max_length</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> 
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Hasło musi mieć od 8 do 128 znaków&quot;</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>    <span class="p">)</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserUpdate</span><span class="p">(</span><span class="n">UserBase</span><span class="p">):</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>    <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>        <span class="n">min_length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> 
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>        <span class="n">max_length</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> 
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>        <span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^[a-zA-Z0-9_.-]+$&quot;</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>    <span class="p">)</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>    <span class="n">totp_enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>    <span class="n">password</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>        <span class="n">min_length</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> 
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>        <span class="n">max_length</span><span class="o">=</span><span class="mi">128</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>    <span class="p">)</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserRead</span><span class="p">(</span><span class="n">UserBase</span><span class="p">):</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>    <span class="n">role</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>    <span class="n">totp_enabled</span><span class="p">:</span> <span class="nb">bool</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Verify2FA</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>    <span class="n">preauth_token</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>    <span class="n">code</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>
-</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Confirm2FA</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>    <span class="n">code</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="k">class</span><span class="w"> </span><span class="nc">TokenRefreshRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>    <span class="n">refresh_token</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">database</span><span class="w"> </span><span class="kn">import</span> <span class="n">UserBase</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserLogin</span><span class="p">(</span><span class="n">UserBase</span><span class="p">):</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserCreate</span><span class="p">(</span><span class="n">UserBase</span><span class="p">):</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>        <span class="n">min_length</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> 
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>        <span class="n">max_length</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> 
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Hasło musi mieć od 8 do 128 znaków&quot;</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>    <span class="p">)</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserUpdate</span><span class="p">(</span><span class="n">UserBase</span><span class="p">):</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>    <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>        <span class="n">min_length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> 
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>        <span class="n">max_length</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> 
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>        <span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^[a-zA-Z0-9_.-]+$&quot;</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>    <span class="p">)</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>    <span class="n">totp_enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>    <span class="n">password</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>        <span class="n">min_length</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> 
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>        <span class="n">max_length</span><span class="o">=</span><span class="mi">128</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>    <span class="p">)</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserRead</span><span class="p">(</span><span class="n">UserBase</span><span class="p">):</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>    <span class="n">role</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>    <span class="n">totp_enabled</span><span class="p">:</span> <span class="nb">bool</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Verify2FA</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>    <span class="n">preauth_token</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>    <span class="n">code</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Confirm2FA</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>    <span class="n">code</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="k">class</span><span class="w"> </span><span class="nc">TokenRefreshRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>    <span class="n">refresh_token</span><span class="p">:</span> <span class="nb">str</span>
 </span></pre></div>
 
 
@@ -188,8 +192,8 @@
 
     </div>
     <a class="headerlink" href="#UserLogin"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="UserLogin-8"><a href="#UserLogin-8"><span class="linenos">8</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserLogin</span><span class="p">(</span><span class="n">UserBase</span><span class="p">):</span>
-</span><span id="UserLogin-9"><a href="#UserLogin-9"><span class="linenos">9</span></a>    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="UserLogin-10"><a href="#UserLogin-10"><span class="linenos">10</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserLogin</span><span class="p">(</span><span class="n">UserBase</span><span class="p">):</span>
+</span><span id="UserLogin-11"><a href="#UserLogin-11"><span class="linenos">11</span></a>    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">min_length</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -230,12 +234,12 @@
 
     </div>
     <a class="headerlink" href="#UserCreate"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="UserCreate-11"><a href="#UserCreate-11"><span class="linenos">11</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserCreate</span><span class="p">(</span><span class="n">UserBase</span><span class="p">):</span>
-</span><span id="UserCreate-12"><a href="#UserCreate-12"><span class="linenos">12</span></a>    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-</span><span id="UserCreate-13"><a href="#UserCreate-13"><span class="linenos">13</span></a>        <span class="n">min_length</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> 
-</span><span id="UserCreate-14"><a href="#UserCreate-14"><span class="linenos">14</span></a>        <span class="n">max_length</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> 
-</span><span id="UserCreate-15"><a href="#UserCreate-15"><span class="linenos">15</span></a>        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Hasło musi mieć od 8 do 128 znaków&quot;</span>
-</span><span id="UserCreate-16"><a href="#UserCreate-16"><span class="linenos">16</span></a>    <span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="UserCreate-13"><a href="#UserCreate-13"><span class="linenos">13</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserCreate</span><span class="p">(</span><span class="n">UserBase</span><span class="p">):</span>
+</span><span id="UserCreate-14"><a href="#UserCreate-14"><span class="linenos">14</span></a>    <span class="n">password</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+</span><span id="UserCreate-15"><a href="#UserCreate-15"><span class="linenos">15</span></a>        <span class="n">min_length</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> 
+</span><span id="UserCreate-16"><a href="#UserCreate-16"><span class="linenos">16</span></a>        <span class="n">max_length</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> 
+</span><span id="UserCreate-17"><a href="#UserCreate-17"><span class="linenos">17</span></a>        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Hasło musi mieć od 8 do 128 znaków&quot;</span>
+</span><span id="UserCreate-18"><a href="#UserCreate-18"><span class="linenos">18</span></a>    <span class="p">)</span>
 </span></pre></div>
 
 
@@ -278,19 +282,19 @@
 
     </div>
     <a class="headerlink" href="#UserUpdate"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="UserUpdate-18"><a href="#UserUpdate-18"><span class="linenos">18</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserUpdate</span><span class="p">(</span><span class="n">UserBase</span><span class="p">):</span>
-</span><span id="UserUpdate-19"><a href="#UserUpdate-19"><span class="linenos">19</span></a>    <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-</span><span id="UserUpdate-20"><a href="#UserUpdate-20"><span class="linenos">20</span></a>        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
-</span><span id="UserUpdate-21"><a href="#UserUpdate-21"><span class="linenos">21</span></a>        <span class="n">min_length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> 
-</span><span id="UserUpdate-22"><a href="#UserUpdate-22"><span class="linenos">22</span></a>        <span class="n">max_length</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> 
-</span><span id="UserUpdate-23"><a href="#UserUpdate-23"><span class="linenos">23</span></a>        <span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^[a-zA-Z0-9_.-]+$&quot;</span>
-</span><span id="UserUpdate-24"><a href="#UserUpdate-24"><span class="linenos">24</span></a>    <span class="p">)</span>
-</span><span id="UserUpdate-25"><a href="#UserUpdate-25"><span class="linenos">25</span></a>    <span class="n">totp_enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-</span><span id="UserUpdate-26"><a href="#UserUpdate-26"><span class="linenos">26</span></a>    <span class="n">password</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-</span><span id="UserUpdate-27"><a href="#UserUpdate-27"><span class="linenos">27</span></a>        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
-</span><span id="UserUpdate-28"><a href="#UserUpdate-28"><span class="linenos">28</span></a>        <span class="n">min_length</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> 
-</span><span id="UserUpdate-29"><a href="#UserUpdate-29"><span class="linenos">29</span></a>        <span class="n">max_length</span><span class="o">=</span><span class="mi">128</span>
-</span><span id="UserUpdate-30"><a href="#UserUpdate-30"><span class="linenos">30</span></a>    <span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="UserUpdate-20"><a href="#UserUpdate-20"><span class="linenos">20</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserUpdate</span><span class="p">(</span><span class="n">UserBase</span><span class="p">):</span>
+</span><span id="UserUpdate-21"><a href="#UserUpdate-21"><span class="linenos">21</span></a>    <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+</span><span id="UserUpdate-22"><a href="#UserUpdate-22"><span class="linenos">22</span></a>        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+</span><span id="UserUpdate-23"><a href="#UserUpdate-23"><span class="linenos">23</span></a>        <span class="n">min_length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> 
+</span><span id="UserUpdate-24"><a href="#UserUpdate-24"><span class="linenos">24</span></a>        <span class="n">max_length</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> 
+</span><span id="UserUpdate-25"><a href="#UserUpdate-25"><span class="linenos">25</span></a>        <span class="n">pattern</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^[a-zA-Z0-9_.-]+$&quot;</span>
+</span><span id="UserUpdate-26"><a href="#UserUpdate-26"><span class="linenos">26</span></a>    <span class="p">)</span>
+</span><span id="UserUpdate-27"><a href="#UserUpdate-27"><span class="linenos">27</span></a>    <span class="n">totp_enabled</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="UserUpdate-28"><a href="#UserUpdate-28"><span class="linenos">28</span></a>    <span class="n">password</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+</span><span id="UserUpdate-29"><a href="#UserUpdate-29"><span class="linenos">29</span></a>        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+</span><span id="UserUpdate-30"><a href="#UserUpdate-30"><span class="linenos">30</span></a>        <span class="n">min_length</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> 
+</span><span id="UserUpdate-31"><a href="#UserUpdate-31"><span class="linenos">31</span></a>        <span class="n">max_length</span><span class="o">=</span><span class="mi">128</span>
+</span><span id="UserUpdate-32"><a href="#UserUpdate-32"><span class="linenos">32</span></a>    <span class="p">)</span>
 </span></pre></div>
 
 
@@ -346,10 +350,10 @@
 
     </div>
     <a class="headerlink" href="#UserRead"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="UserRead-32"><a href="#UserRead-32"><span class="linenos">32</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserRead</span><span class="p">(</span><span class="n">UserBase</span><span class="p">):</span>
-</span><span id="UserRead-33"><a href="#UserRead-33"><span class="linenos">33</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
-</span><span id="UserRead-34"><a href="#UserRead-34"><span class="linenos">34</span></a>    <span class="n">role</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="UserRead-35"><a href="#UserRead-35"><span class="linenos">35</span></a>    <span class="n">totp_enabled</span><span class="p">:</span> <span class="nb">bool</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="UserRead-34"><a href="#UserRead-34"><span class="linenos">34</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserRead</span><span class="p">(</span><span class="n">UserBase</span><span class="p">):</span>
+</span><span id="UserRead-35"><a href="#UserRead-35"><span class="linenos">35</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="UserRead-36"><a href="#UserRead-36"><span class="linenos">36</span></a>    <span class="n">role</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="UserRead-37"><a href="#UserRead-37"><span class="linenos">37</span></a>    <span class="n">totp_enabled</span><span class="p">:</span> <span class="nb">bool</span>
 </span></pre></div>
 
 
@@ -414,9 +418,9 @@
 
     </div>
     <a class="headerlink" href="#Verify2FA"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Verify2FA-37"><a href="#Verify2FA-37"><span class="linenos">37</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Verify2FA</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="Verify2FA-38"><a href="#Verify2FA-38"><span class="linenos">38</span></a>    <span class="n">preauth_token</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="Verify2FA-39"><a href="#Verify2FA-39"><span class="linenos">39</span></a>    <span class="n">code</span><span class="p">:</span> <span class="nb">str</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Verify2FA-39"><a href="#Verify2FA-39"><span class="linenos">39</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Verify2FA</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="Verify2FA-40"><a href="#Verify2FA-40"><span class="linenos">40</span></a>    <span class="n">preauth_token</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="Verify2FA-41"><a href="#Verify2FA-41"><span class="linenos">41</span></a>    <span class="n">code</span><span class="p">:</span> <span class="nb">str</span>
 </span></pre></div>
 
 
@@ -490,8 +494,8 @@ __pydantic_private__: Values of private attributes set on the model instance.
 
     </div>
     <a class="headerlink" href="#Confirm2FA"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Confirm2FA-41"><a href="#Confirm2FA-41"><span class="linenos">41</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Confirm2FA</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="Confirm2FA-42"><a href="#Confirm2FA-42"><span class="linenos">42</span></a>    <span class="n">code</span><span class="p">:</span> <span class="nb">str</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Confirm2FA-43"><a href="#Confirm2FA-43"><span class="linenos">43</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Confirm2FA</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="Confirm2FA-44"><a href="#Confirm2FA-44"><span class="linenos">44</span></a>    <span class="n">code</span><span class="p">:</span> <span class="nb">str</span>
 </span></pre></div>
 
 
@@ -553,8 +557,8 @@ __pydantic_private__: Values of private attributes set on the model instance.
 
     </div>
     <a class="headerlink" href="#TokenRefreshRequest"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="TokenRefreshRequest-44"><a href="#TokenRefreshRequest-44"><span class="linenos">44</span></a><span class="k">class</span><span class="w"> </span><span class="nc">TokenRefreshRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
-</span><span id="TokenRefreshRequest-45"><a href="#TokenRefreshRequest-45"><span class="linenos">45</span></a>    <span class="n">refresh_token</span><span class="p">:</span> <span class="nb">str</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="TokenRefreshRequest-46"><a href="#TokenRefreshRequest-46"><span class="linenos">46</span></a><span class="k">class</span><span class="w"> </span><span class="nc">TokenRefreshRequest</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="TokenRefreshRequest-47"><a href="#TokenRefreshRequest-47"><span class="linenos">47</span></a>    <span class="n">refresh_token</span><span class="p">:</span> <span class="nb">str</span>
 </span></pre></div>
 
 

@@ -92,24 +92,21 @@ async def websocket_client_endpoint(websocket: WebSocket):
             if last_send_token != token:
                 res = requests.post(f"{config.API_ADDRESS}/nodes/verify-user?token={token}&api_key={config.NODES_KEY}")
                 if res.status_code != 200:
-                    #print(res.status_code)
                     await websocket.send_json({"error": "Auth failed"})
                     continue
                 else:
                     last_send_token = token
                     username = res.json().get("username", "Unknown")
 
-            #print(dane, username, task_id)
+
             if action == "get_data":
                 await get_read_data(websocket, dane, username,task_id)
 
             elif config.NODE_ID == state.LEADER_ID:
-
                 match action:
                     case "save_data":
                         await add_by_leader(websocket, dane, username, task_id)
                     case "delete_data":
-                        #print("XD")
                         await delete_by_leader(websocket, dane, username,task_id)
 
             else:
@@ -117,7 +114,6 @@ async def websocket_client_endpoint(websocket: WebSocket):
                     case "save_data":
                         send_message(config.TYPE_DATA_NEW, state.LEADER_ID, dane, user=username, task_id=task_id, client_id=c_id)
                     case "delete_data":
-                        #print("XD")
                         send_message(config.TYPE_DATA_DELETE, state.LEADER_ID, dane, user=username, task_id=task_id, client_id=c_id)
 
     except WebSocketDisconnect:

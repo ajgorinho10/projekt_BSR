@@ -1,3 +1,5 @@
+"""Przechowuje klucze oraz typy wiadomośći do komunikacji między wątkami"""
+
 import os
 
 #Klucze do komunikacji między wątkami

@@ -97,14 +97,14 @@
                     <h1 class="modulename">
 <a href="./../nodes.html">nodes</a><wbr>.state    </h1>
 
-                        <div class="docstring"><p>Serwer w pamięci ram, przechowuje informacje o urochomionych wątkach</p>
+                        <div class="docstring"><p>Serwer w pamięci ram, przechowuje informacje o urochomionych wątkach, zmienne przechowujące stan danego wątku</p>
 </div>
 
                         <input id="mod-state-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
                         <label class="view-source-button" for="mod-state-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="sd">&quot;&quot;&quot;Serwer w pamięci ram, przechowuje informacje o urochomionych wątkach&quot;&quot;&quot;</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="sd">&quot;&quot;&quot;Serwer w pamięci ram, przechowuje informacje o urochomionych wątkach, zmienne przechowujące stan danego wątku&quot;&quot;&quot;</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a>
 </span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">psutil</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">redis.asyncio</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">redis</span>
@@ -187,7 +187,7 @@
 </span><span id="L-81"><a href="#L-81"><span class="linenos">81</span></a>    <span class="k">return</span> <span class="n">active_nodes</span>
 </span><span id="L-82"><a href="#L-82"><span class="linenos">82</span></a>
 </span><span id="L-83"><a href="#L-83"><span class="linenos">83</span></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_nodes_info</span><span class="p">():</span>
-</span><span id="L-84"><a href="#L-84"><span class="linenos">84</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Funkcja pomocnicza - zwraca listę wszystkich wątków z bazy&quot;&quot;&quot;</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos">84</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Zwraca słownik(Dict) wszystkich wątków z bazy w formacie JSON&quot;&quot;&quot;</span>
 </span><span id="L-85"><a href="#L-85"><span class="linenos">85</span></a>    <span class="n">active_nodes</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="L-86"><a href="#L-86"><span class="linenos">86</span></a>    <span class="n">nodes_details_db</span> <span class="o">=</span> <span class="k">await</span> <span class="n">redis_client</span><span class="o">.</span><span class="n">hgetall</span><span class="p">(</span><span class="s2">&quot;nodes_details&quot;</span><span class="p">)</span>
 </span><span id="L-87"><a href="#L-87"><span class="linenos">87</span></a>
@@ -238,7 +238,7 @@
                 <section id="LAST_HEARTBEAT">
                     <div class="attr variable">
             <span class="name">LAST_HEARTBEAT</span>        =
-<span class="default_value">1778005340.969553</span>
+<span class="default_value">1778098504.5080597</span>
 
         
     </div>
@@ -250,7 +250,7 @@
                 <section id="START_UP_TIME">
                     <div class="attr variable">
             <span class="name">START_UP_TIME</span>        =
-<span class="default_value">1778005340.969553</span>
+<span class="default_value">1778098504.5080597</span>
 
         
     </div>
@@ -509,7 +509,7 @@
     </div>
     <a class="headerlink" href="#get_nodes_info"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="get_nodes_info-84"><a href="#get_nodes_info-84"><span class="linenos">84</span></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_nodes_info</span><span class="p">():</span>
-</span><span id="get_nodes_info-85"><a href="#get_nodes_info-85"><span class="linenos">85</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Funkcja pomocnicza - zwraca listę wszystkich wątków z bazy&quot;&quot;&quot;</span>
+</span><span id="get_nodes_info-85"><a href="#get_nodes_info-85"><span class="linenos">85</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Zwraca słownik(Dict) wszystkich wątków z bazy w formacie JSON&quot;&quot;&quot;</span>
 </span><span id="get_nodes_info-86"><a href="#get_nodes_info-86"><span class="linenos">86</span></a>    <span class="n">active_nodes</span> <span class="o">=</span> <span class="p">{}</span>
 </span><span id="get_nodes_info-87"><a href="#get_nodes_info-87"><span class="linenos">87</span></a>    <span class="n">nodes_details_db</span> <span class="o">=</span> <span class="k">await</span> <span class="n">redis_client</span><span class="o">.</span><span class="n">hgetall</span><span class="p">(</span><span class="s2">&quot;nodes_details&quot;</span><span class="p">)</span>
 </span><span id="get_nodes_info-88"><a href="#get_nodes_info-88"><span class="linenos">88</span></a>
@@ -520,7 +520,7 @@
 </span></pre></div>
 
 
-            <div class="docstring"><p>Funkcja pomocnicza - zwraca listę wszystkich wątków z bazy</p>
+            <div class="docstring"><p>Zwraca słownik(Dict) wszystkich wątków z bazy w formacie JSON</p>
 </div>
 
 

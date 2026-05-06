@@ -1,4 +1,4 @@
-"""Serwer w pamięci ram, przechowuje informacje o urochomionych wątkach"""
+"""Serwer w pamięci ram, przechowuje informacje o urochomionych wątkach, zmienne przechowujące stan danego wątku"""
 
 import psutil
 import redis.asyncio as redis
@@ -81,7 +81,7 @@ async def get_nodes_connections():
     return active_nodes
 
 async def get_nodes_info():
-    """Funkcja pomocnicza - zwraca listę wszystkich wątków z bazy"""
+    """Zwraca słownik(Dict) wszystkich wątków z bazy w formacie JSON"""
     active_nodes = {}
     nodes_details_db = await redis_client.hgetall("nodes_details")
 

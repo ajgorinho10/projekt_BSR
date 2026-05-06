@@ -1,3 +1,5 @@
+"Punkty końcowe dla użytkowników związane z autentykacją"
+
 import pyotp
 from jose import JWTError, jwt
 

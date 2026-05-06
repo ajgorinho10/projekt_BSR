@@ -1,3 +1,5 @@
+"Sockety dla wątków(do komunikacji z serwerem głównym) oraz użytkownika(aktualizacje statusu wątków)"
+
 import os
 import asyncio
 

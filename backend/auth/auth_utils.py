@@ -1,3 +1,5 @@
+"""Przechowuje podstawowe metody dla haseł oraz tokenów"""
+
 import os
 
 from fastapi.security import OAuth2PasswordBearer

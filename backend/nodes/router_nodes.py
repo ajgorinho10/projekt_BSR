@@ -1,3 +1,5 @@
+"""Główny proces wątku"""
+
 import asyncio
 import os
 import subprocess
