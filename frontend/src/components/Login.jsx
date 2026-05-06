@@ -37,17 +37,30 @@ export const Login = () => {
                 setError("Zbyt dużo błędnych prób logowania zaczekaj 1 minutę");
                 return;
             }
+            else if(err.response?.status === 422){
+                const details = err.response?.data?.detail;
+                console.log(details);
 
-            const newMsgUsername = (err.response?.data?.detail[0]?.loc[1] +" : "+ err.response?.data?.detail[0]?.msg) || ""
+                if (Array.isArray(details)) {
+                    const errorMessages = details.map(errObj => {
+                        const field = errObj.loc[errObj.loc.length - 1];
+                        const cleanMsg = errObj.msg.replace(/^Value error, /, "");
+                        const fieldMap = { username: "Login", password: "Hasło" };
+                        const label = fieldMap[field] || field;
+
+                        return `${cleanMsg}`;
+                    });
+
+                    setError(errorMessages.join("\n"));
+                } else {
+                    setError("Wystąpił nieoczekiwany błąd");
+                }
             
-            if(err.response?.data?.detail[1] !== undefined){
-                const newMsgPassword = (err.response?.data?.detail[1]?.loc[1] +" : "+ err.response?.data?.detail[1]?.msg) || ""
-                setError((newMsgUsername + "\n" + newMsgPassword) || 'Błąd rejestracji');
-                return
+            }else if(err.response?.status === 401){
+                setError(err.response?.data?.detail || 'Błąd rejestracji');
             }
-
-            setError((newMsgUsername + "\n") || 'Błąd rejestracji');
         }
+        
     };
 
     // Krok 2: Wysłanie kodu TOTP

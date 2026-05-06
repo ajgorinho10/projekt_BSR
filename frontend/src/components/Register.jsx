@@ -20,15 +20,22 @@ export const Register = () => {
             setTimeout(() => navigate('/login'), 2000);
         } catch (err) {
             setIsSuccess(false);
-            const newMsgUsername = (err.response?.data?.detail[0]?.loc[1] +" : "+ err.response?.data?.detail[0]?.msg) || ""
-            
-            if(err.response?.data?.detail[1] !== undefined){
-                const newMsgPassword = (err.response?.data?.detail[1]?.loc[1] +" : "+ err.response?.data?.detail[1]?.msg) || ""
-                setMsg((newMsgUsername + "\n" + newMsgPassword) || 'Błąd rejestracji');
-                return
-            }
+            const details = err.response?.data?.detail;
 
-            setMsg((newMsgUsername + "\n") || 'Błąd rejestracji');
+            if (Array.isArray(details)) {
+                const errorMessages = details.map(errObj => {
+                    const field = errObj.loc[errObj.loc.length - 1];
+                    const cleanMsg = errObj.msg.replace(/^Value error, /, "");
+                    const fieldMap = { username: "Login", password: "Hasło" };
+                    const label = fieldMap[field] || field;
+
+                    return `${cleanMsg}`;
+                });
+
+                setMsg(errorMessages.join("\n"));
+            } else {
+                setMsg("Wystąpił nieoczekiwany błąd");
+            }
         }
     };
 

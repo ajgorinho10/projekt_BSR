@@ -1,18 +1,26 @@
 from datetime import datetime, timezone
 from typing import Optional
 from sqlmodel import SQLModel, Field, Column, DateTime
-
+from pydantic import field_validator
+import re
 
 class UserBase(SQLModel):
     """Podstawowy model użytkownika po którym dziedziczą inne klasy"""
     username: str = Field(
         unique=True, 
         index=True, 
-        nullable=False,
-        min_length=3,        # Minimalna długość loginu
-        max_length=30,       # Maksymalna długość loginu
-        regex=r"^[a-zA-Z0-9_.-]+$"
+        nullable=False
     )
+    
+    @field_validator("username")
+    @classmethod
+    def validate_username_format(cls, v: str):
+        if not re.match(r"^[a-zA-Z0-9_.-]+$", v):
+            raise ValueError("Nazwa użytkownika może zawierać tylko litery, cyfry, kropki, myślniki i podkreślniki.")
+        
+        if len(v) < 3 or len > 30:
+            raise ValueError("Nazwa użytkownika może mieć od 3 do 30 znaków")
+        return v
 
 class User(UserBase, table=True):
     """Kompletna tabela użytkownika w bazie, dziedziczy po UserBase"""
