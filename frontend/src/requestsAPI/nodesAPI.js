@@ -55,3 +55,13 @@ export const StopStartNode = async (id,stop) =>{
         throw error
     }
 }
+
+export const errorMake = async (id,type) =>{
+    try{
+        const response = await api.post(`http://127.0.0.1:8000/nodes/error/${type}/${id}`);
+
+        return response.data;
+    }catch(error){
+        throw error;
+    }
+};

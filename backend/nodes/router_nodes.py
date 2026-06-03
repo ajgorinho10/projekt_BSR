@@ -99,6 +99,33 @@ async def deactivateNode(node_id: int,user:User = Depends(require_admin)):
         return response.json()
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Węzeł {node_id} nie odpowiada!")
+    
+@router.post("/error/{type}/{node_id}")
+async def make_error_in_node(node_id: int,type:str, user:User = Depends(require_admin)):
+    """Generuje błędy w wątkach"""
+    
+    node = await state.get_node(node_id)
+    if node is None:
+        raise HTTPException(status_code=400, detail=f"Węzeł {node_id} nie istnieje!")
+  
+    port = node["port"]
+    url = node["url"]
+
+    if type == "leader":
+        url += "/error-leader"
+    elif type == "spam":
+        url += "/error-spam"        
+    else:
+        raise HTTPException(status_code=404, detail=f"Nieprawidłowy typ błędu")
+    headers = {"nodes-key": NODES_KEY}
+    try:
+        response = requests.post(url,headers=headers,timeout=2)
+        if response.status_code != 200:
+            raise Exception(response.json()["detail"])
+        return response.json()
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=400, detail=f"Węzeł {node_id}: {e}")
 
 
 @router.post("/{node_id}")

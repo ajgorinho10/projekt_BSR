@@ -59,6 +59,7 @@ async def websocket_frontend(websocket: WebSocket,token: str = Query(None)):
         user = await verify_ws_token_and_role(token, ["user", "admin"])
         if user is None:
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
 
         last_send_nodes = None
         last_send_info = None

@@ -1,9 +1,11 @@
 import asyncio, threading, uuid, json, requests, websockets
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import JSONResponse
 from starlette import status
+from contextlib import asynccontextmanager
+import time
 
 from nodes import config
 from nodes import state
@@ -13,7 +15,18 @@ from .messaging import send_message
 from .cluster_logic import rabbitmq_listener, heartbeat_worker
 from database import init_db_node, Data
 
-app = FastAPI(title=f"Węzeł {config.NODE_ID}")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Uruchamia wątki odpowiedzialne ze komunikację procesu"""
+    state.MAIN_LOOP = asyncio.get_running_loop()
+    await init_db_node()
+    threading.Thread(target=rabbitmq_listener, daemon=True).start()
+    threading.Thread(target=heartbeat_worker, daemon=True).start()
+    asyncio.create_task(connect_to_api())
+    
+    yield
+
+app = FastAPI(title=f"Węzeł {config.NODE_ID}", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 
@@ -26,16 +39,6 @@ class KEYRestrictMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(KEYRestrictMiddleware)
-
-
-@app.on_event("startup")
-async def startup_event():
-    """Uruchamia wątki odpowiedzialne ze komunikację procesu"""
-    state.MAIN_LOOP = asyncio.get_running_loop()
-    await init_db_node()
-    threading.Thread(target=rabbitmq_listener, daemon=True).start()
-    threading.Thread(target=heartbeat_worker, daemon=True).start()
-    asyncio.create_task(connect_to_api())
 
 
 async def connect_to_api():
@@ -138,6 +141,39 @@ def deactivate_node():
     """Aktywuje wątek"""
     state.STATUS = config.TYPE_STATUS_ACTIVE
     return {"message":"Węzeł zatrzymany"}
+
+@app.post("/error-leader")
+def make_error_leader():
+    
+    if config.NODE_ID == state.LEADER_ID:
+        raise HTTPException(status_code=400, detail=f"Węzeł nie może być liderem!")
+    
+    print(f'Watek {config.NODE_ID} wykonuje błąd leader')
+    threading.Thread(target=start_leader_error, daemon=True).start()
+        
+    return {"message":"Błąd wykonany!"}
+
+@app.post("/error-spam")
+def make_error_leader():
+    
+    if config.NODE_ID == state.LEADER_ID:
+        raise HTTPException(status_code=400, detail=f"Węzeł nie może być liderem!")
+    
+    print(f'Watek {config.NODE_ID} wykonuje błąd spam')
+    threading.Thread(target=start_spam_error, daemon=True).start()
+        
+    return {"message":"Błąd wykonany!"}
+
+def start_leader_error():
+    for i in range(0,5):
+        print(f'[Węzeł {config.NODE_ID}] {i}: Send -> TYPE_MSG_COORDINATOR')
+        send_message(config.TYPE_MSG_COORDINATOR)
+        time.sleep(1)
+        
+def start_spam_error():
+    for i in range(0, 32):
+        print(f'[Węzeł {config.NODE_ID}] {i}: Send -> MSG')
+        send_message("ERROR")
 
 
 async def delete_by_leader(websocket,dane,username,task_id):

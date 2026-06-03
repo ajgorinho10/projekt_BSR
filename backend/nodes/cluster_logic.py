@@ -2,6 +2,8 @@ import time
 import json
 import pika
 import asyncio
+import requests
+import time
 
 from nodes import config
 from nodes import state
@@ -13,7 +15,7 @@ from database import Data
 
 def start_election():
     """ Obsługuje start elekcji lidera"""
-    print("state.STATUS",state.STATUS,"ELECTION_IN_PROGRESS",state.ELECTION_IN_PROGRESS,"LAST_HEARDBEAT",time.time() - state.LAST_HEARTBEAT)
+    #print("state.STATUS",state.STATUS,"ELECTION_IN_PROGRESS",state.ELECTION_IN_PROGRESS,"LAST_HEARDBEAT",time.time() - state.LAST_HEARTBEAT)
     if time.time() - state.LAST_HEARTBEAT > 15:
         state.ELECTION_IN_PROGRESS = False
 
@@ -52,6 +54,8 @@ def heartbeat_worker():
                 start_election()
 
 
+NUMBER_MSG_NODES = {}
+TIME_MSG_NODES = {}
 def rabbitmq_listener():
     """Nasłuchuje komunikatów od brokera wiadomośći- RabbitMQ"""
     connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
@@ -68,15 +72,38 @@ def rabbitmq_listener():
 
         if od == config.NODE_ID or (do and do != config.NODE_ID) or state.STATUS != config.TYPE_STATUS_ACTIVE:
             return
+        
+        if state.LEADER_ID == config.NODE_ID:
+            number = NUMBER_MSG_NODES.setdefault(od, 0)
+            last_time = time.time() - TIME_MSG_NODES.setdefault(od, time.time())
+            NUMBER_MSG_NODES[od] += 1
+            
+            print("Lider",last_time,NUMBER_MSG_NODES[od])    
+            
+            if NUMBER_MSG_NODES[od] > 30 and last_time <= 10:
+                url = f'http://127.0.0.1:{8000 + od}/deactivate'
+                header = {"nodes-key": "KLUCZ_DO_WEZLOW!"}
+                print(url)
+                try:
+                    response = requests.post(url=url,headers=header)
+                    print(f'Lider zablokował węzeł {od}: {response}')
+                    
+                    NUMBER_MSG_NODES[od] = 0
+                except Exception as e:
+                    print(f'Błąd deaktywacji węzła {od}: {e}')
+            elif last_time > 10:
+                NUMBER_MSG_NODES[od] = 0
+                
+            TIME_MSG_NODES[od] = time.time()       
 
         if typ == config.TYPE_MSG_COORDINATOR:
-            print(f"WEZEŁ{config.NODE_ID} od:{od}")
-            if config.NODE_ID < od:
+            print(f"WEZEŁ{config.NODE_ID} od:{od}, lider: {state.LEADER_ID}")
+            if config.NODE_ID > od and state.LEADER_ID is not None and state.LEADER_ID < od:
+                start_election()
+            elif config.NODE_ID < od and state.LEADER_ID is not None and state.LEADER_ID < od:
                 state.ELECTION_IN_PROGRESS = False
                 state.LEADER_ID = od
                 state.LAST_HEARTBEAT = time.time()
-            else:
-                start_election()
 
         if config.NODE_ID < od: state.ELECTION_MSGS.add(od)
 
@@ -149,10 +176,10 @@ def rabbitmq_listener():
 
 
         elif typ == config.TYPE_MSG_HEARTBEAT:
-            print(f"WEZEŁ{config.NODE_ID} od:{od} -- HEARTBEAT")
+            #print(f"WEZEŁ{config.NODE_ID} od:{od} -- HEARTBEAT")
 
             if config.NODE_ID > od:
-                print("zaczynam ELEKCJE")
+                #print("zaczynam ELEKCJE")
                 start_election()
             elif state.LEADER_ID is None or state.LEADER_ID < od:
                 state.LEADER_ID = od

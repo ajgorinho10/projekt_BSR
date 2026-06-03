@@ -1,13 +1,21 @@
 import React, { useState } from "react";
 import { useNodes } from "../context/NodesContext";
-import { addNewNode, KillNode, StopStartNode } from "../requestsAPI/nodesAPI";
+import { addNewNode, errorMake, KillNode, StopStartNode } from "../requestsAPI/nodesAPI";
 
 import '../App.css';
+import api from "../api";
 
 export const AdminPanel = () => {
     const { nodes, nodesInfo } = useNodes();
+    
+    // Stany dla dodawania węzłów
     const [inputValue, setInputValue] = useState(1);
 
+    // Stany dla wysyłania błędów
+    const [errorNodeId, setErrorNodeId] = useState("");
+    const [errorType, setErrorType] = useState("leader");
+
+    // Stany dla komunikatów
     const [message, setMessage] = useState("");
     const [isError, setIsError] = useState(false);
 
@@ -64,6 +72,24 @@ export const AdminPanel = () => {
         }
     };
 
+    const handleSendError = async () => {
+        if (!errorNodeId) {
+            setIsError(true);
+            setMessage("Wybierz węzeł docelowy z listy.");
+            return;
+        }
+        setMessage("");
+        
+        try {
+            await errorMake(errorNodeId, errorType);
+            setIsError(false);
+            setMessage(`Pomyślnie wysłano błąd typu '${errorType}' do węzła #${errorNodeId}.`);
+        } catch (error) {
+            setIsError(true);
+            setMessage(error.response?.data?.detail || "Wystąpił błąd podczas wysyłania błędu.");
+        }
+    };
+
     return (
         <div className="admin-container">
             <h1 style={{ marginBottom: '20px' }}>Panel Administratora</h1>
@@ -77,18 +103,16 @@ export const AdminPanel = () => {
                 </div>
             )}
 
-            {/* --- NOWY, PRZEPROJEKTOWANY PANEL GÓRNY --- */}
+            {/* --- ZARZĄDZANIE KLASTREM --- */}
             <div className="node-card" style={{
                 display: 'flex',
                 flexWrap: 'wrap',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: '40px',
+                marginBottom: '20px',
                 padding: '25px 30px',
                 gap: '20px'
             }}>
-
-                {/* Lewa strona: Informacje */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <h2 style={{ margin: 0, fontSize: '1.3rem', color: 'var(--primary)' }}>Zarządzanie klastrem</h2>
                     <p style={{ margin: 0, border: 'none', padding: 0, display: 'flex', alignItems: 'center' }}>
@@ -108,7 +132,6 @@ export const AdminPanel = () => {
                     </p>
                 </div>
 
-                {/* Prawa strona: Formularz dodawania */}
                 <div style={{
                     display: 'flex',
                     alignItems: 'flex-end',
@@ -150,13 +173,106 @@ export const AdminPanel = () => {
                             width: 'auto',
                             margin: 0,
                             padding: '10px 20px',
-                            whiteSpace: 'nowrap' // Zapobiega łamaniu tekstu na przycisku
-                        }}
-                    >
-                        + Uruchom nowy
+                            whiteSpace: 'nowrap'
+                        }}> + Uruchom nowy
                     </button>
                 </div>
+            </div>
 
+            {/* --- SYMULACJA BŁĘDÓW --- */}
+            <div className="node-card" style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '40px',
+                padding: '25px 30px',
+                gap: '20px'
+            }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <h2 style={{ margin: 0, fontSize: '1.3rem', color: 'var(--primary)' }}>Symulacja Błędów</h2>
+                    <p style={{ margin: 0, border: 'none', padding: 0 }}>Wymuś błąd na wybranym węźle</p>
+                </div>
+
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-end',
+                    gap: '12px',
+                    background: 'var(--bg)',
+                    padding: '16px 20px',
+                    borderRadius: '12px',
+                    border: '1px solid var(--border)'
+                }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <label style={{
+                            fontSize: '0.75rem',
+                            color: 'var(--secondary)',
+                            marginBottom: '6px',
+                            fontWeight: '700',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                        }}>
+                            Węzeł
+                        </label>
+                        <select
+                            value={errorNodeId}
+                            onChange={(e) => setErrorNodeId(e.target.value)}
+                            style={{ padding: '10px', margin: 0, fontWeight: '600', minWidth: '130px' }}
+                            className="custom-select"
+                        >
+                            <option value="">Wybierz...</option>
+                                {nodes && nodes.map((node) => {
+                                    const id = node.node_id;
+                                    const leaderId = nodesInfo?.[id]?.leader_id;
+
+                                    // Rzutowanie na String rozwiązuje problem typów (np. 1 !== "1").
+                                    // Warunek != null zabezpiecza przed sytuacją, w której dane jeszcze się nie załadowały.
+                                    const isLeader = leaderId != null && String(id) === String(leaderId);
+
+                                    if (isLeader) return null;
+
+                                    return (
+                                        <option key={id} value={id}>
+                                            #{id}
+                                        </option>
+                                    );
+                                })}
+                        </select>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                        <label style={{
+                            fontSize: '0.75rem',
+                            color: 'var(--secondary)',
+                            marginBottom: '6px',
+                            fontWeight: '700',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                        }}>
+                            Typ błędu
+                        </label>
+                        <select
+                            value={errorType}
+                            onChange={(e) => setErrorType(e.target.value)}
+                            style={{ padding: '10px', margin: 0, fontWeight: '600', minWidth: '120px' }}
+                            className="custom-select"
+                        >
+                            <option value="leader">Leader</option>
+                            <option value="spam">Spam</option>
+                        </select>
+                    </div>
+
+                    <button
+                        onClick={handleSendError}
+                        className="btn-danger"
+                        style={{
+                            width: 'auto',
+                            margin: 0,
+                            padding: '10px 20px',
+                            whiteSpace: 'nowrap'
+                        }}> Wyślij błąd
+                    </button>
+                </div>
             </div>
 
             {/* --- SIATKA WĘZŁÓW --- */}
