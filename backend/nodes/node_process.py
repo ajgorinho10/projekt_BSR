@@ -123,7 +123,6 @@ async def websocket_client_endpoint(websocket: WebSocket):
         state.REACT_CLIENTS.pop(c_id, None)
 
 
-# Endpointy statusu zostają tutaj...
 @app.get("/status")
 def get_status():
     """Zwraca status wątku"""

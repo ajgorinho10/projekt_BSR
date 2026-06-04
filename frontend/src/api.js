@@ -24,9 +24,9 @@ export const GetisLogout = async (logout) =>{
     return true;
 }
 
-// 1. Tworzymy główną instancję Axios
+
 export const api = axios.create({
-    // Upewnij się, że ten adres zgadza się z portem Twojego FastAPI!
+
     baseURL: 'http://localhost:8000',
     withCredentials: true,
     headers: {
@@ -34,7 +34,7 @@ export const api = axios.create({
     },
 });
 
-// 2. Request Interceptor: Zanim wyślesz zapytanie, doklej token
+
 api.interceptors.request.use(
      (config) => {   
         if (inMemoryAccessToken) {
@@ -61,10 +61,9 @@ const processQueue = (error, token = null) => {
     failedQueue = [];
 };
 
-// 3. Response Interceptor: Co zrobić, gdy backend rzuci błędem? (Magia odświeżania)
+
 api.interceptors.response.use(
     (response) => {
-        // Jeśli zapytanie się powiodło (np. 200 OK), po prostu zwracamy dane
         return response;
     },
     async (error) => {
@@ -73,14 +72,12 @@ api.interceptors.response.use(
             console.error("Błąd sieciowy lub blokada CORS:", error);
             return Promise.reject(error);
         }
-        // Zapisujemy oryginalne zapytanie, które zakończyło się błędem
         const originalRequest = error.config;
 
         if (originalRequest.url === '/auth/login' || originalRequest.url === '/auth/verify-2fa' || originalRequest.url === '/auth/refresh') {
         return Promise.reject(error);
     }
 
-        // Jeśli błąd to 401 (Brak autoryzacji) i nie próbowaliśmy go jeszcze ponowić...
         const isLogout = await GetisLogout();
         if (error.response?.status === 401 && !originalRequest._retry && isLogout == false) {
             
@@ -109,7 +106,6 @@ api.interceptors.response.use(
                 return await api(originalRequest);
 
             } catch (refreshError) {
-                // Jeśli odświeżanie się nie powiodło (np. stary token był na czarnej liście)
                 console.error("Sesja wygasła, wylogowywanie...", refreshError);
                 inMemoryAccessToken = null;
                 if (window.location.pathname !== '/login') {
@@ -121,7 +117,6 @@ api.interceptors.response.use(
             }
         }
 
-        // Jeśli to jakikolwiek inny błąd (np. 400, 403, 500), zwracamy go do komponentu
         return Promise.reject(error);
     }
 );

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 export const Register = () => {
     const [formData, setFormData] = useState({ username: '', password: '' });
     const [msg, setMsg] = useState('');
-    const [isSuccess, setIsSuccess] = useState(false); // Flaga do odróżnienia sukcesu od błędu
+    const [isSuccess, setIsSuccess] = useState(false);
     
     const navigate = useNavigate();
 
@@ -43,7 +43,6 @@ export const Register = () => {
         <div className="container" style={{ margin: 'auto', marginTop: '10vh' }}>
             <h2>Rejestracja</h2>
             
-            {/* Dynamiczne stylowanie komunikatu (sukces / błąd) */}
             {msg && (
                 <p 
                     className={isSuccess ? "success-msg" : "error-msg"} 

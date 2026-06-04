@@ -1,3 +1,0 @@
-pytest .\ --cov=..\ --cov-report=html
-pytest .\auth_test\ --cov=..\auth
-pytest .\auth_test\ --cov=..\auth --cov-report=html

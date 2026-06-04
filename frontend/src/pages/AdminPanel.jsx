@@ -8,14 +8,11 @@ import api from "../api";
 export const AdminPanel = () => {
     const { nodes, nodesInfo } = useNodes();
     
-    // Stany dla dodawania węzłów
     const [inputValue, setInputValue] = useState(1);
 
-    // Stany dla wysyłania błędów
     const [errorNodeId, setErrorNodeId] = useState("");
     const [errorType, setErrorType] = useState("leader");
 
-    // Stany dla komunikatów
     const [message, setMessage] = useState("");
     const [isError, setIsError] = useState(false);
 
@@ -103,7 +100,6 @@ export const AdminPanel = () => {
                 </div>
             )}
 
-            {/* --- ZARZĄDZANIE KLASTREM --- */}
             <div className="node-card" style={{
                 display: 'flex',
                 flexWrap: 'wrap',
@@ -179,7 +175,6 @@ export const AdminPanel = () => {
                 </div>
             </div>
 
-            {/* --- SYMULACJA BŁĘDÓW --- */}
             <div className="node-card" style={{
                 display: 'flex',
                 flexWrap: 'wrap',
@@ -224,9 +219,6 @@ export const AdminPanel = () => {
                                 {nodes && nodes.map((node) => {
                                     const id = node.node_id;
                                     const leaderId = nodesInfo?.[id]?.leader_id;
-
-                                    // Rzutowanie na String rozwiązuje problem typów (np. 1 !== "1").
-                                    // Warunek != null zabezpiecza przed sytuacją, w której dane jeszcze się nie załadowały.
                                     const isLeader = leaderId != null && String(id) === String(leaderId);
 
                                     if (isLeader) return null;
@@ -275,7 +267,7 @@ export const AdminPanel = () => {
                 </div>
             </div>
 
-            {/* --- SIATKA WĘZŁÓW --- */}
+
             <div className="nodes-grid">
                 {nodes && nodes.map((node) => {
                     const id = node?.node_id;

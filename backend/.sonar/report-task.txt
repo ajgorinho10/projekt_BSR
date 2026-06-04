@@ -1,6 +1,0 @@
-projectKey=project_bsr
-serverUrl=http://localhost:9000
-serverVersion=26.6.0.123539
-dashboardUrl=http://localhost:9000/dashboard?id=project_bsr
-ceTaskId=cde0962d-038a-4be9-95c6-b13c11d09198
-ceTaskUrl=http://localhost:9000/api/ce/task?id=cde0962d-038a-4be9-95c6-b13c11d09198

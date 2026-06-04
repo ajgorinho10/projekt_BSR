@@ -7,18 +7,16 @@ export const Login = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    // Stany formularza
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     
-    // Stany dla 2FA
-    const [step, setStep] = useState(1); // 1 = Login/Hasło, 2 = Kod TOTP
+    const [step, setStep] = useState(1);
     const [totpCode, setTotpCode] = useState('');
-    const [tempToken, setTempToken] = useState(''); // Tymczasowy token z kroku 1
+    const [tempToken, setTempToken] = useState('');
     
     const [error, setError] = useState('');
 
-    // Krok 1: Wysłanie loginu i hasła
+
     const handleInitialLogin = async (e) => {
         e.preventDefault();
         setError('');
@@ -63,7 +61,6 @@ export const Login = () => {
         
     };
 
-    // Krok 2: Wysłanie kodu TOTP
     const handleVerifyTotp = async (e) => {
         e.preventDefault();
         setError('');
@@ -88,11 +85,9 @@ export const Login = () => {
         <div className="container" style={{ margin: 'auto', marginTop: '10vh' }}>
             <h2>{step === 1 ? 'Zaloguj się' : 'Weryfikacja 2FA'}</h2>
             
-            {/* Wyświetlanie błędów z wykorzystaniem klasy CSS z App.css */}
             {error && <p className="error-msg" style={{ marginBottom: '20px' }}>{error}</p>}
 
             {step === 1 ? (
-                // WIDOK 1: Standardowe logowanie
                 <form onSubmit={handleInitialLogin}>
                     <div style={{ marginBottom: '15px' }}>
                         <label style={{ fontSize: '0.9rem', color: 'var(--secondary)', fontWeight: '500' }}>
@@ -121,7 +116,7 @@ export const Login = () => {
                     <button type="submit">Zaloguj</button>
                 </form>
             ) : (
-                // WIDOK 2: Weryfikacja 2FA
+                
                 <form onSubmit={handleVerifyTotp}>
                     <p style={{ marginBottom: '20px' }}>
                         Wprowadź 6-cyfrowy kod z aplikacji uwierzytelniającej.

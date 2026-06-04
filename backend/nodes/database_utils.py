@@ -8,9 +8,7 @@ from nodes import state
 async def add_data_to_db_async(dane: Data):
     """Dodaje rekord do bazy danych wątków (Async)"""
     try:
-        #print("3",dane)
         async for session in get_async_session_node():
-            #print("4",dane)
 
             session.add(dane)
             await session.commit()
@@ -33,7 +31,6 @@ async def delete_data_from_db_async(data_id: int,username: str):
     """Usuwa rekord o podanym ID (Async)"""
     try:
         async for session in get_async_session_node():
-            #print(data_id,username)
             statement = select(Data).where(Data.id == int(data_id))
             results = await session.execute(statement)
 
@@ -44,7 +41,7 @@ async def delete_data_from_db_async(data_id: int,username: str):
                 await session.commit()
                 return data_id
 
-            return False # Nie znaleziono ID
+            return False
     except Exception as e:
         print(f"Błąd usuwania async: {e}")
         return False

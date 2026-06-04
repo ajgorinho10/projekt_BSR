@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import { useNodes } from "../context/NodesContext.jsx";
-import { useNodeWebSocket } from "../hooks/useNodeWebSocket.js"; // Dostosuj ścieżkę importu!
+import { useNodeWebSocket } from "../hooks/useNodeWebSocket.js";
 import api from "../api.js";
 
 export const DashboardPage = () => {
@@ -76,7 +76,6 @@ export const DashboardPage = () => {
             {numberOfNodes > 0 && (
                 <div className="node-card" style={{ display: "flex", gap: "25px", alignItems: "flex-start" }}>
 
-                    {/* LEWA KOLUMNA: WYBÓR WĘZŁA */}
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "2px" }}>
                             <p style={{ marginBottom: "5px" }}><strong>Wybierz węzeł</strong></p>
@@ -103,7 +102,6 @@ export const DashboardPage = () => {
                         )}
                     </div>
 
-                    {/* ŚRODKOWA KOLUMNA: DODAWANIE */}
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderLeft: "1px solid #eee", paddingLeft: "20px" }}>
                         <p style={{ marginBottom: "10px" }}><strong>Dodaj dane</strong></p>
                         <input
@@ -118,7 +116,6 @@ export const DashboardPage = () => {
                         </button>
                     </div>
 
-                    {/* PRAWA KOLUMNA: USUWANIE */}
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderLeft: "1px solid #eee", paddingLeft: "20px" }}>
                         <p style={{ marginBottom: "10px" }}><strong>Usuń dane</strong></p>
                         <input

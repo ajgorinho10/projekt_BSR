@@ -232,12 +232,10 @@ async def confirm_2fa(
     if not current_user.totp_secret:
         raise HTTPException(status_code=400, detail="Najpierw wygeneruj kod QR w /setup-2fa.")
 
-    # Sprawdzamy kod
     totp = pyotp.TOTP(current_user.totp_secret)
     if not totp.verify(data.code):
         raise HTTPException(status_code=400, detail="Błędny kod autoryzacyjny. Spróbuj ponownie.")
 
-    # Jeśli kod jest poprawny, oficjalnie aktywujemy 2FA!
     current_user.totp_enabled = True
     session.add(current_user)
     await session.commit()
@@ -259,13 +257,11 @@ async def refresh_token(
     if not refresh_token:
          raise HTTPException(status_code=401, detail="Brak tokena odświeżającego.")
 
-    # 1. Sprawdzamy, czy stary token nie został już użyty (Czarna Lista)
     statement = select(BlacklistedToken).where(BlacklistedToken.token == refresh_token)
     result = await session.execute(statement)
     if result.scalars().first():
         raise HTTPException(status_code=401, detail="Ten token został już wykorzystany.")
 
-    # 2. Dekodowanie i weryfikacja JWT
     try:
         payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
         if payload.get("type") != "refresh":
@@ -277,7 +273,6 @@ async def refresh_token(
     except JWTError:
         raise HTTPException(status_code=401, detail="Nieważny token odświeżający.")
 
-    # 3. POBRANIE UŻYTKOWNIKA RĘCZNIE NA PODSTAWIE TOKENA
     statement = select(User).where(User.username == username)
     result = await session.execute(statement)
     user = result.scalars().first()
@@ -285,7 +280,6 @@ async def refresh_token(
     if not user:
         raise HTTPException(status_code=404, detail="Użytkownik nie istnieje")
 
-    # 4. Generowanie NOWYCH tokenów (PAMIĘTAJ O DODANIU ROLI!)
     new_access_token = create_access_token(data={"sub": user.username, "role": user.role})
     return {
         "access_token": new_access_token,

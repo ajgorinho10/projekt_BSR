@@ -7,13 +7,12 @@ export const SettingsPage = () => {
 
     const [newPass, setNewPass] = useState("");
     const [newLogin, setNewLogin] = useState("");
-    
-    // Dodajemy nowe stany do obsługi komunikatów!
+
     const [message, setMessage] = useState('');
     const [isError, setIsError] = useState(false);
 
     const changeRole = async () => {
-        setMessage(''); // Czyścimy poprzednie komunikaty
+        setMessage('');
         const rola = user.role === "user" ? "admin" : "user";
         await promoteTo(rola);
         await checkAuthStatus();
@@ -46,18 +45,17 @@ export const SettingsPage = () => {
             setMessage("Wartość pola nie może być pusta");
             return;
         }
-        setMessage(''); // Czyścimy stare wiadomości
+        setMessage('');
         try {
-            // Wywołujemy funkcję aktualizującą
+
             await updateUserName(newLogin);
             setNewLogin("");
             await checkAuthStatus();
-            // Uwaga: Jeśli masz logikę, która wylogowuje po zmianie loginu,
-            // to kod poniżej może nie zdążyć się wyświetlić.
+
             setIsError(false);
             setMessage("Login zmieniony pomyślnie!"); 
         } catch (error) {
-            // TUTAJ ŁAPIEMY BŁĄD Z FASTAPI (np. "Nazwa użytkownika jest zajęta !")
+            
             setIsError(true);
             setMessage(error.response?.data?.detail[0]?.msg || "Wystąpił błąd podczas zmiany loginu.");
         }
@@ -81,8 +79,7 @@ export const SettingsPage = () => {
     return (
         <div className="container">
             <h2>Informacje o profilu</h2>
-            
-            {/* Wyświetlanie komunikatów o sukcesie lub błędzie */}
+
             {message && (
                 <p className={isError ? "error-msg" : "success-msg"} style={{ marginBottom: '20px' }}>
                     {message}

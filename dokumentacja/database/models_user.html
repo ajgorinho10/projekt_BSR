@@ -36,6 +36,9 @@
                         <li>
                                 <a class="variable" href="#UserBase.username">username</a>
                         </li>
+                        <li>
+                                <a class="function" href="#UserBase.validate_username_format">validate_username_format</a>
+                        </li>
                 </ul>
 
             </li>
@@ -102,39 +105,47 @@
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">sqlmodel</span><span class="w"> </span><span class="kn">import</span> <span class="n">SQLModel</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">DateTime</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserBase</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">):</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Podstawowy model użytkownika po którym dziedziczą inne klasy&quot;&quot;&quot;</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>        <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>        <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>        <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>        <span class="n">min_length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>        <span class="c1"># Minimalna długość loginu</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>        <span class="n">max_length</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>       <span class="c1"># Maksymalna długość loginu</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>        <span class="n">regex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^[a-zA-Z0-9_.-]+$&quot;</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>    <span class="p">)</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a><span class="k">class</span><span class="w"> </span><span class="nc">User</span><span class="p">(</span><span class="n">UserBase</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Kompletna tabela użytkownika w bazie, dziedziczy po UserBase&quot;&quot;&quot;</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>    <span class="c1">#__table_args__ = {&#39;extend_existing&#39;: True}</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>    <span class="n">hashed_password</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>    <span class="n">role</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;user&quot;</span><span class="p">)</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>    <span class="n">totp_secret</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>    <span class="n">totp_enabled</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a><span class="k">class</span><span class="w"> </span><span class="nc">BlacklistedToken</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Przechowuje wykorzystane &quot;refresh_token&quot; &quot;&quot;&quot;</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>    <span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>    <span class="n">blacklisted_on</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>        <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>        <span class="n">sa_column</span><span class="o">=</span><span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">(</span><span class="n">timezone</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>    <span class="p">)</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">field_validator</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserBase</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">):</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Podstawowy model użytkownika po którym dziedziczą inne klasy&quot;&quot;&quot;</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>        <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>        <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>        <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>    <span class="p">)</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>    
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;username&quot;</span><span class="p">)</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>    <span class="nd">@classmethod</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate_username_format</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^[a-zA-Z0-9_.-]+$&quot;</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Nazwa użytkownika może zawierać tylko litery, cyfry, kropki, myślniki i podkreślniki.&quot;</span><span class="p">)</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>        
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">:</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Nazwa użytkownika może mieć od 3 do 30 znaków&quot;</span><span class="p">)</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>        <span class="k">return</span> <span class="n">v</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a><span class="k">class</span><span class="w"> </span><span class="nc">User</span><span class="p">(</span><span class="n">UserBase</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Kompletna tabela użytkownika w bazie, dziedziczy po UserBase&quot;&quot;&quot;</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>    <span class="c1">#__table_args__ = {&#39;extend_existing&#39;: True}</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>    <span class="n">hashed_password</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>    <span class="n">role</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;user&quot;</span><span class="p">)</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>    <span class="n">totp_secret</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>    <span class="n">totp_enabled</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a><span class="k">class</span><span class="w"> </span><span class="nc">BlacklistedToken</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Przechowuje wykorzystane &quot;refresh_token&quot; &quot;&quot;&quot;</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>    <span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>    <span class="n">blacklisted_on</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>        <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>        <span class="n">sa_column</span><span class="o">=</span><span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">(</span><span class="n">timezone</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>    <span class="p">)</span>
 </span></pre></div>
 
 
@@ -150,16 +161,23 @@
 
     </div>
     <a class="headerlink" href="#UserBase"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="UserBase-7"><a href="#UserBase-7"><span class="linenos"> 7</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserBase</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">):</span>
-</span><span id="UserBase-8"><a href="#UserBase-8"><span class="linenos"> 8</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Podstawowy model użytkownika po którym dziedziczą inne klasy&quot;&quot;&quot;</span>
-</span><span id="UserBase-9"><a href="#UserBase-9"><span class="linenos"> 9</span></a>    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-</span><span id="UserBase-10"><a href="#UserBase-10"><span class="linenos">10</span></a>        <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
-</span><span id="UserBase-11"><a href="#UserBase-11"><span class="linenos">11</span></a>        <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
-</span><span id="UserBase-12"><a href="#UserBase-12"><span class="linenos">12</span></a>        <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-</span><span id="UserBase-13"><a href="#UserBase-13"><span class="linenos">13</span></a>        <span class="n">min_length</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>        <span class="c1"># Minimalna długość loginu</span>
-</span><span id="UserBase-14"><a href="#UserBase-14"><span class="linenos">14</span></a>        <span class="n">max_length</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>       <span class="c1"># Maksymalna długość loginu</span>
-</span><span id="UserBase-15"><a href="#UserBase-15"><span class="linenos">15</span></a>        <span class="n">regex</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;^[a-zA-Z0-9_.-]+$&quot;</span>
-</span><span id="UserBase-16"><a href="#UserBase-16"><span class="linenos">16</span></a>    <span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="UserBase-8"><a href="#UserBase-8"><span class="linenos"> 8</span></a><span class="k">class</span><span class="w"> </span><span class="nc">UserBase</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">):</span>
+</span><span id="UserBase-9"><a href="#UserBase-9"><span class="linenos"> 9</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Podstawowy model użytkownika po którym dziedziczą inne klasy&quot;&quot;&quot;</span>
+</span><span id="UserBase-10"><a href="#UserBase-10"><span class="linenos">10</span></a>    <span class="n">username</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+</span><span id="UserBase-11"><a href="#UserBase-11"><span class="linenos">11</span></a>        <span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+</span><span id="UserBase-12"><a href="#UserBase-12"><span class="linenos">12</span></a>        <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+</span><span id="UserBase-13"><a href="#UserBase-13"><span class="linenos">13</span></a>        <span class="n">nullable</span><span class="o">=</span><span class="kc">False</span>
+</span><span id="UserBase-14"><a href="#UserBase-14"><span class="linenos">14</span></a>    <span class="p">)</span>
+</span><span id="UserBase-15"><a href="#UserBase-15"><span class="linenos">15</span></a>    
+</span><span id="UserBase-16"><a href="#UserBase-16"><span class="linenos">16</span></a>    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;username&quot;</span><span class="p">)</span>
+</span><span id="UserBase-17"><a href="#UserBase-17"><span class="linenos">17</span></a>    <span class="nd">@classmethod</span>
+</span><span id="UserBase-18"><a href="#UserBase-18"><span class="linenos">18</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate_username_format</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="UserBase-19"><a href="#UserBase-19"><span class="linenos">19</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^[a-zA-Z0-9_.-]+$&quot;</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+</span><span id="UserBase-20"><a href="#UserBase-20"><span class="linenos">20</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Nazwa użytkownika może zawierać tylko litery, cyfry, kropki, myślniki i podkreślniki.&quot;</span><span class="p">)</span>
+</span><span id="UserBase-21"><a href="#UserBase-21"><span class="linenos">21</span></a>        
+</span><span id="UserBase-22"><a href="#UserBase-22"><span class="linenos">22</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">:</span>
+</span><span id="UserBase-23"><a href="#UserBase-23"><span class="linenos">23</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Nazwa użytkownika może mieć od 3 do 30 znaków&quot;</span><span class="p">)</span>
+</span><span id="UserBase-24"><a href="#UserBase-24"><span class="linenos">24</span></a>        <span class="k">return</span> <span class="n">v</span>
 </span></pre></div>
 
 
@@ -179,6 +197,34 @@
     
 
                             </div>
+                            <div id="UserBase.validate_username_format" class="classattr">
+                                        <input id="UserBase.validate_username_format-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+                    <div class="decorator decorator-field_validator">@field_validator(&#39;username&#39;)</div>
+        <div class="decorator decorator-classmethod">@classmethod</div>
+
+        <span class="def">def</span>
+        <span class="name">validate_username_format</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">cls</span>, </span><span class="param"><span class="n">v</span><span class="p">:</span> <span class="nb">str</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="UserBase.validate_username_format-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#UserBase.validate_username_format"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="UserBase.validate_username_format-16"><a href="#UserBase.validate_username_format-16"><span class="linenos">16</span></a>    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">&quot;username&quot;</span><span class="p">)</span>
+</span><span id="UserBase.validate_username_format-17"><a href="#UserBase.validate_username_format-17"><span class="linenos">17</span></a>    <span class="nd">@classmethod</span>
+</span><span id="UserBase.validate_username_format-18"><a href="#UserBase.validate_username_format-18"><span class="linenos">18</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">validate_username_format</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="UserBase.validate_username_format-19"><a href="#UserBase.validate_username_format-19"><span class="linenos">19</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^[a-zA-Z0-9_.-]+$&quot;</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+</span><span id="UserBase.validate_username_format-20"><a href="#UserBase.validate_username_format-20"><span class="linenos">20</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Nazwa użytkownika może zawierać tylko litery, cyfry, kropki, myślniki i podkreślniki.&quot;</span><span class="p">)</span>
+</span><span id="UserBase.validate_username_format-21"><a href="#UserBase.validate_username_format-21"><span class="linenos">21</span></a>        
+</span><span id="UserBase.validate_username_format-22"><a href="#UserBase.validate_username_format-22"><span class="linenos">22</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">:</span>
+</span><span id="UserBase.validate_username_format-23"><a href="#UserBase.validate_username_format-23"><span class="linenos">23</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Nazwa użytkownika może mieć od 3 do 30 znaków&quot;</span><span class="p">)</span>
+</span><span id="UserBase.validate_username_format-24"><a href="#UserBase.validate_username_format-24"><span class="linenos">24</span></a>        <span class="k">return</span> <span class="n">v</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
                 </section>
                 <section id="User">
                             <input id="User-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
@@ -191,15 +237,15 @@
 
     </div>
     <a class="headerlink" href="#User"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="User-18"><a href="#User-18"><span class="linenos">18</span></a><span class="k">class</span><span class="w"> </span><span class="nc">User</span><span class="p">(</span><span class="n">UserBase</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="User-19"><a href="#User-19"><span class="linenos">19</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Kompletna tabela użytkownika w bazie, dziedziczy po UserBase&quot;&quot;&quot;</span>
-</span><span id="User-20"><a href="#User-20"><span class="linenos">20</span></a>    <span class="c1">#__table_args__ = {&#39;extend_existing&#39;: True}</span>
-</span><span id="User-21"><a href="#User-21"><span class="linenos">21</span></a>
-</span><span id="User-22"><a href="#User-22"><span class="linenos">22</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="User-23"><a href="#User-23"><span class="linenos">23</span></a>    <span class="n">hashed_password</span><span class="p">:</span> <span class="nb">str</span>
-</span><span id="User-24"><a href="#User-24"><span class="linenos">24</span></a>    <span class="n">role</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;user&quot;</span><span class="p">)</span>
-</span><span id="User-25"><a href="#User-25"><span class="linenos">25</span></a>    <span class="n">totp_secret</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-</span><span id="User-26"><a href="#User-26"><span class="linenos">26</span></a>    <span class="n">totp_enabled</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="User-26"><a href="#User-26"><span class="linenos">26</span></a><span class="k">class</span><span class="w"> </span><span class="nc">User</span><span class="p">(</span><span class="n">UserBase</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="User-27"><a href="#User-27"><span class="linenos">27</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Kompletna tabela użytkownika w bazie, dziedziczy po UserBase&quot;&quot;&quot;</span>
+</span><span id="User-28"><a href="#User-28"><span class="linenos">28</span></a>    <span class="c1">#__table_args__ = {&#39;extend_existing&#39;: True}</span>
+</span><span id="User-29"><a href="#User-29"><span class="linenos">29</span></a>
+</span><span id="User-30"><a href="#User-30"><span class="linenos">30</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="User-31"><a href="#User-31"><span class="linenos">31</span></a>    <span class="n">hashed_password</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="User-32"><a href="#User-32"><span class="linenos">32</span></a>    <span class="n">role</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;user&quot;</span><span class="p">)</span>
+</span><span id="User-33"><a href="#User-33"><span class="linenos">33</span></a>    <span class="n">totp_secret</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</span><span id="User-34"><a href="#User-34"><span class="linenos">34</span></a>    <span class="n">totp_enabled</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -273,6 +319,15 @@
     
 
                             </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt><a href="#UserBase">UserBase</a></dt>
+                                <dd id="User.validate_username_format" class="function"><a href="#UserBase.validate_username_format">validate_username_format</a></dd>
+
+            </div>
+                                </dl>
+                            </div>
                 </section>
                 <section id="BlacklistedToken">
                             <input id="BlacklistedToken-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
@@ -285,15 +340,15 @@
 
     </div>
     <a class="headerlink" href="#BlacklistedToken"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="BlacklistedToken-29"><a href="#BlacklistedToken-29"><span class="linenos">29</span></a><span class="k">class</span><span class="w"> </span><span class="nc">BlacklistedToken</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-</span><span id="BlacklistedToken-30"><a href="#BlacklistedToken-30"><span class="linenos">30</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Przechowuje wykorzystane &quot;refresh_token&quot; &quot;&quot;&quot;</span>
-</span><span id="BlacklistedToken-31"><a href="#BlacklistedToken-31"><span class="linenos">31</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="BlacklistedToken-32"><a href="#BlacklistedToken-32"><span class="linenos">32</span></a>    <span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="BlacklistedToken-33"><a href="#BlacklistedToken-33"><span class="linenos">33</span></a>
-</span><span id="BlacklistedToken-34"><a href="#BlacklistedToken-34"><span class="linenos">34</span></a>    <span class="n">blacklisted_on</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-</span><span id="BlacklistedToken-35"><a href="#BlacklistedToken-35"><span class="linenos">35</span></a>        <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
-</span><span id="BlacklistedToken-36"><a href="#BlacklistedToken-36"><span class="linenos">36</span></a>        <span class="n">sa_column</span><span class="o">=</span><span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">(</span><span class="n">timezone</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
-</span><span id="BlacklistedToken-37"><a href="#BlacklistedToken-37"><span class="linenos">37</span></a>    <span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="BlacklistedToken-37"><a href="#BlacklistedToken-37"><span class="linenos">37</span></a><span class="k">class</span><span class="w"> </span><span class="nc">BlacklistedToken</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="BlacklistedToken-38"><a href="#BlacklistedToken-38"><span class="linenos">38</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Przechowuje wykorzystane &quot;refresh_token&quot; &quot;&quot;&quot;</span>
+</span><span id="BlacklistedToken-39"><a href="#BlacklistedToken-39"><span class="linenos">39</span></a>    <span class="nb">id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="BlacklistedToken-40"><a href="#BlacklistedToken-40"><span class="linenos">40</span></a>    <span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">unique</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="BlacklistedToken-41"><a href="#BlacklistedToken-41"><span class="linenos">41</span></a>
+</span><span id="BlacklistedToken-42"><a href="#BlacklistedToken-42"><span class="linenos">42</span></a>    <span class="n">blacklisted_on</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+</span><span id="BlacklistedToken-43"><a href="#BlacklistedToken-43"><span class="linenos">43</span></a>        <span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+</span><span id="BlacklistedToken-44"><a href="#BlacklistedToken-44"><span class="linenos">44</span></a>        <span class="n">sa_column</span><span class="o">=</span><span class="n">Column</span><span class="p">(</span><span class="n">DateTime</span><span class="p">(</span><span class="n">timezone</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</span><span id="BlacklistedToken-45"><a href="#BlacklistedToken-45"><span class="linenos">45</span></a>    <span class="p">)</span>
 </span></pre></div>
 
 

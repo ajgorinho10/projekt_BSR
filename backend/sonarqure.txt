@@ -1,1 +1,0 @@
-pysonar --sonar-host-url=http://localhost:9000 --sonar-token=sqp_8ade8253f5ac6f297ad1a5fe2d06af5ec227ddb3  --sonar-project-key=project_bsr 

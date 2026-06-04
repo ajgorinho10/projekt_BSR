@@ -9,9 +9,9 @@ export const Settings2FA = () => {
     const [secret, setSecret] = useState('');
     const [code, setCode] = useState('');
     const [message, setMessage] = useState('');
-    const [isSuccess, setIsSuccess] = useState(false); // Do kolorowania komunikatów
+    const [isSuccess, setIsSuccess] = useState(false);
 
-    // Jeśli 2FA jest już włączone, nie pokazujemy kreatora
+    
     if (user?.totp_enabled) {
         return (
             <div className="container" style={{ textAlign: 'center' }}>
@@ -26,7 +26,7 @@ export const Settings2FA = () => {
         );
     }
 
-    // KROK 1: Generowanie sekretu i URL dla aplikacji
+    
     const handleSetup = async () => {
         setMessage('');
         try {
@@ -39,15 +39,15 @@ export const Settings2FA = () => {
         }
     };
 
-    // KROK 2: Potwierdzenie pierwszym kodem
+    
     const handleConfirm = async () => {
         setMessage('');
         try {
             const res = await api.post('/auth/confirm-2fa', { code });
             setIsSuccess(true);
             setMessage(res.data.message || 'Zabezpieczenie 2FA zostało pomyślnie aktywowane!');
-            setQrUrl(''); // Ukrywamy QR po sukcesie
-            await checkAuthStatus(); // Aktualizujemy stan usera (totp_enabled zmeni się na true)
+            setQrUrl('');
+            await checkAuthStatus();
         } catch (err) {
             setIsSuccess(false);
             setMessage(err.response?.data?.detail || 'Błędny kod z aplikacji.');
@@ -65,7 +65,7 @@ export const Settings2FA = () => {
             )}
 
             {!qrUrl && !isSuccess ? (
-                // EKRAN POWITALNY 2FA
+                
                 <div style={{ textAlign: 'center', padding: '20px 0' }}>
                     <p style={{ marginBottom: '30px', color: 'var(--secondary)', lineHeight: '1.6' }}>
                         Zwiększ bezpieczeństwo swojego konta. Do logowania będzie wymagane hasło oraz jednorazowy kod z aplikacji takich jak <strong>Google Authenticator</strong> lub <strong>Authy</strong>.
@@ -73,7 +73,7 @@ export const Settings2FA = () => {
                     <button onClick={handleSetup}>Skonfiguruj 2FA</button>
                 </div>
             ) : !isSuccess && qrUrl ? (
-                // EKRAN KONFIGURACJI (QR CODE)
+                
                 <div style={{ textAlign: 'center' }}>
                     <p style={{ fontWeight: '500', marginBottom: '10px' }}>
                         1. Zeskanuj ten kod QR w swojej aplikacji:

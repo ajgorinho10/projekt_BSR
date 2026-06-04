@@ -50,27 +50,25 @@ export const AuthProvider = ({ children }) => {
         window.location.href = '/login';
     };
 
-    // To, co udostępniamy reszcie aplikacji
+
     const contextValue = {
         user,
         checkAuthStatus,
         isLoading,
         login,
         logout,
-        isAuthenticated: !!user, // Wygodny boolean (true/false)
-        isAdmin: user?.role === 'admin' // Wygodny sprawdzacz ról
+        isAuthenticated: !!user,
+        isAdmin: user?.role === 'admin'
     };
-//{!isLoading ? children : <div style={{textAlign: 'center', marginTop: '50px'}}>Ładowanie systemu...</div>}
+
     return (
         <AuthContext.Provider value={contextValue}>
-            {/* Nie renderujemy aplikacji, dopóki nie sprawdzimy kim jest user */}
             {!isLoading ? children : <div style={{textAlign: 'center', marginTop: '50px'}}>Ładowanie systemu...</div>}
 
         </AuthContext.Provider>
     );
 };
 
-// 3. Wygodny Hook (żeby nie pisać wszędzie useContext(AuthContext))
 export const useAuth = () => {
     return useContext(AuthContext);
 };
