@@ -176,6 +176,7 @@ def rabbitmq_listener():
 
 
         elif typ == config.TYPE_MSG_HEARTBEAT:
+            state.ELECTION_IN_PROGRESS = False
             #print(f"WEZEŁ{config.NODE_ID} od:{od} -- HEARTBEAT")
 
             if config.NODE_ID > od:
