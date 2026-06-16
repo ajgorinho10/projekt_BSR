@@ -34,7 +34,7 @@ export const Register = () => {
 
                 setMsg(errorMessages.join("\n"));
             } else {
-                setMsg("Wystąpił nieoczekiwany błąd");
+                setMsg(details);
             }
         }
     };
