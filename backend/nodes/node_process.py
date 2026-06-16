@@ -126,6 +126,7 @@ async def websocket_client_endpoint(websocket: WebSocket):
 @app.get("/status")
 def get_status():
     """Zwraca status wątku"""
+    state.LAST_HEARTBEAT = time.time()
     return {"node_id": config.NODE_ID, "status": state.STATUS, "leader_id": state.LEADER_ID}
 
 @app.post("/deactivate")

@@ -48,8 +48,8 @@ def heartbeat_worker():
         if state.LEADER_ID == config.NODE_ID:
             send_message(config.TYPE_MSG_HEARTBEAT)
             state.LAST_HEARTBEAT = time.time()
-        elif not state.ELECTION_IN_PROGRESS or time.time() - state.LAST_HEARTBEAT > 10:
-            if time.time() - state.LAST_HEARTBEAT > 5:
+        elif state.ELECTION_IN_PROGRESS is False:
+            if time.time() - state.LAST_HEARTBEAT > 10.0:
                 print("brak headbeat")
                 start_election()
 
@@ -167,6 +167,7 @@ def rabbitmq_listener():
         elif typ == config.TYPE_MSG_ELECTION:
             state.ELECTION_IN_PROGRESS = True
             state.ELECTION_MSGS.clear()
+            state.LEADER_ID = None
 
             if config.NODE_ID > od: send_message(config.TYPE_MSG_OK, od)
 
@@ -176,16 +177,18 @@ def rabbitmq_listener():
 
 
         elif typ == config.TYPE_MSG_HEARTBEAT:
-            state.ELECTION_IN_PROGRESS = False
-            #print(f"WEZEŁ{config.NODE_ID} od:{od} -- HEARTBEAT")
-
+            print(f"WEZEŁ{config.NODE_ID} od:{od} -- HEARTBEAT")
+ 
             if config.NODE_ID > od:
-                #print("zaczynam ELEKCJE")
+                print("zaczynam ELEKCJE - rabit")
                 start_election()
+                return
             elif state.LEADER_ID is None or state.LEADER_ID < od:
                 state.LEADER_ID = od
-
+                state.ELECTION_IN_PROGRESS = False
+            
             state.LAST_HEARTBEAT = time.time()
+
 
     channel.basic_consume(queue=result.method.queue, on_message_callback=callback, auto_ack=True)
     channel.start_consuming()

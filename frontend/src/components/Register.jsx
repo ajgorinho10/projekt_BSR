@@ -21,7 +21,7 @@ export const Register = () => {
         } catch (err) {
             setIsSuccess(false);
             const details = err.response?.data?.detail;
-
+            console.log(details)
             if (Array.isArray(details)) {
                 const errorMessages = details.map(errObj => {
                     const field = errObj.loc[errObj.loc.length - 1];
